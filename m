@@ -1,33 +1,42 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from pluto.mpi-klsb.mpg.de (pluto.mpi-klsb.mpg.de [139.19.205.193])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 904A53A783E;
-	Thu, 26 Feb 2026 22:56:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BF436D4E1
+	for <autofs@vger.kernel.org>; Fri, 27 Feb 2026 07:28:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.19.205.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772146602; cv=none; b=qGRpibsGF4WetNUeXKRvNNbrYh4K6iNcifJHrwM3u0/OIlyBUZX5OD8iNOhCF7MJKZ4CHvNvMuTiH/ul0igZVTgVzdEY7/iVyG5Dy755z8kWejyJ+qu40fgyRMGHgk62FBQri+ywrJORCkgLb64+06A5448dSQQi+ZIpjPT3eTQ=
+	t=1772177343; cv=none; b=IL6P1eebsxM8Q0MhAlXPJ6BE8IxZCJhK8o4ZjZa+VAe+s0G1h08R5ECurYl7C3pBchVittsxH/yDR8K5fs0H6msjGs5HRx5eBdwc3F8gDmVqQ+wv25mWtYA5joQoGVuiVMk0I3TJ3GHcD1Zfe7JzusG5jAsaWlOL/7mnAT8W25o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772146602; c=relaxed/simple;
-	bh=ElkHN/R2fcBT5rLZGFbsSk4BZBEcI1Z5rkz7cnL9q58=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kXmdDYzUiiVaMI7g7pMec5/wrwftZ2VX+GDrNZxvwZU9drFVcXboLVqblVoWvj8otDc2BLCYw29IfBmAxAkURNX3l+k3vaZCW5uk0TUokgnjWWqceDuQU3O2Oo1jFlhD31hLfmZiAbdYHExipr9i/BqV4/LCK7AM+EKNZ8nMwCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ln4pWb9Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772177343; c=relaxed/simple;
+	bh=ZI6n8bKQnYq/wYr9Oplj1vFf4ejeOFwXHbbqReoarrI=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=rEjrlMBIuJJTF9guyYJ5SvUOm/H77PdWJLqQu0LoqVx0WRuE6/somb3DpKvynQC20bQ97dhOggWAhhJJRkMZ0YAzFMOdND5t8klVoVk2QfkEG9lDQ6tmOJ93/QK5n48cjUHpMQg2MX0t2JbsQ7A66hoSztyhOZ8LZj2mdtMOukw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mpi-klsb.mpg.de; spf=pass smtp.mailfrom=mpi-klsb.mpg.de; dkim=pass (2048-bit key) header.d=mpi-klsb.mpg.de header.i=@mpi-klsb.mpg.de header.b=D3HaaqPP; arc=none smtp.client-ip=139.19.205.193
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mpi-klsb.mpg.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mpi-klsb.mpg.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ln4pWb9Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E473EC116C6;
-	Thu, 26 Feb 2026 22:56:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772146602;
-	bh=ElkHN/R2fcBT5rLZGFbsSk4BZBEcI1Z5rkz7cnL9q58=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Ln4pWb9ZIa3iii1vd5gskrCoKmm1t9tEjYVEd5fbke5FD8fPQDsw2mkbqPb5Bnw+S
-	 z3+EiWtdlhrUEY/TzIpfb4TaDwuEYYePiDKvB2OL6xLfeGklpk4bZ6oZPa7zFemslG
-	 rGqmK29WoeRiHAvoCn9ydRfTOnwb3b8GUvcCmKy2jWa2lV07OB5alxRd6yvLlYu4sb
-	 GaIsxiVCRS8rqhZm6xuDYkrjN+izm2sJOCaV0gENsM1vxdjD6EFWvjkPYxW+Mk0ppk
-	 CgdPwGLujPkowNzYZB2g8SKWMopeLJvORgQ3TQwNfrH9FkU9y/THXIshdB3DErq5Vf
-	 e80DkaSCt9oCA==
-Message-ID: <044291bc-9841-44fe-813e-c50772962f09@kernel.org>
-Date: Fri, 27 Feb 2026 07:56:18 +0900
+	dkim=pass (2048-bit key) header.d=mpi-klsb.mpg.de header.i=@mpi-klsb.mpg.de header.b="D3HaaqPP"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=mpi-klsb.mpg.de; s=mail202309; h=Content-Type:In-Reply-To:References:To:
+	From:MIME-Version:Date:Message-ID:cc:content-transfer-encoding:content-id:
+	content-description; bh=ZI6n8bKQnYq/wYr9Oplj1vFf4ejeOFwXHbbqReoarrI=; b=D3Haa
+	qPPv5/Pkg/G//EDAp0xtR52+mCr3y3fqIx6dhdlbOnQvUPJVVGZZS8UzYTUNLIkekA3XyntWLtttA
+	AaiQfW9CcYev5LVgp0mOB3NV5Cwnttgl6+owY+TC8GGJHsGoELRhqGXuK27GPCEObYb+zHUBwIbft
+	ck2jbr5nbNp4fjh7ZVRvnfgVuiMPNsYQG5wFO4Tay7wj1sJj1qPQ2TkNP0oQ49OGZSwok37jVhVsG
+	+28zQitmlHhXSwOEIOVsm5jaWSV3br8hs7UgHNEldZ544fJoOw/j2AahyqnQFPU5fSYJSVGdgxwVg
+	0vSuuMH4iIIKIXaMRVmkVKHJBBeZg==;
+Received: from srv-23-0404.mpi-klsb.mpg.de ([139.19.86.27]:48040 helo=max.mpi-klsb.mpg.de)
+	by pluto.mpi-klsb.mpg.de (envelope-from <pcernko@mpi-klsb.mpg.de>) 
+	with esmtps (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.98.2) id 1vvsBb-0000000ATbB-12NN;
+	Fri, 27 Feb 2026 08:22:57 +0100
+Received: from pd9e90347.dip0.t-ipconnect.de ([217.233.3.71]:62072 helo=[192.168.178.103])
+	by max.mpi-klsb.mpg.de (envelope-from <pcernko@mpi-klsb.mpg.de>) 
+	with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96) id 1vvsBb-003QYL-0N;
+	Fri, 27 Feb 2026 08:22:54 +0100
+Message-ID: <c0bc64b9-e041-4f75-824a-df9d4ea2e5ce@mpi-klsb.mpg.de>
+Date: Fri, 27 Feb 2026 08:22:54 +0100
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -35,143 +44,147 @@ List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/61] vfs: widen inode hash/lookup functions to u64
-To: Jeff Layton <jlayton@kernel.org>, Alexander Viro
- <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>,
- Jan Kara <jack@suse.cz>, Steven Rostedt <rostedt@goodmis.org>,
- Masami Hiramatsu <mhiramat@kernel.org>,
- Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
- Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Eric Biggers <ebiggers@kernel.org>,
- "Theodore Y. Ts'o" <tytso@mit.edu>, Muchun Song <muchun.song@linux.dev>,
- Oscar Salvador <osalvador@suse.de>, David Hildenbrand <david@kernel.org>,
- David Howells <dhowells@redhat.com>, Paulo Alcantara <pc@manguebit.org>,
- Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.com>,
- Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <chao@kernel.org>,
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
- Chuck Lever <chuck.lever@oracle.com>, NeilBrown <neil@brown.name>,
- Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>,
- Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>,
- Ronnie Sahlberg <ronniesahlberg@gmail.com>,
- Shyam Prasad N <sprasad@microsoft.com>, Bharath SM
- <bharathsm@microsoft.com>, Alexander Aring <alex.aring@gmail.com>,
- Ryusuke Konishi <konishi.ryusuke@gmail.com>,
- Viacheslav Dubeyko <slava@dubeyko.com>,
- Eric Van Hensbergen <ericvh@kernel.org>, Latchesar Ionkov
- <lucho@ionkov.net>, Dominique Martinet <asmadeus@codewreck.org>,
- Christian Schoenebeck <linux_oss@crudebyte.com>,
- David Sterba <dsterba@suse.com>, Marc Dionne <marc.dionne@auristor.com>,
- Ian Kent <raven@themaw.net>, Luis de Bethencourt <luisbg@kernel.org>,
- Salah Triki <salah.triki@gmail.com>,
- "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
- Ilya Dryomov <idryomov@gmail.com>, Alex Markuze <amarkuze@redhat.com>,
- Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
- Nicolas Pitre <nico@fluxnic.net>, Tyler Hicks <code@tyhicks.com>,
- Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@infradead.org>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Yangtao Li <frank.li@vivo.com>,
- Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
- David Woodhouse <dwmw2@infradead.org>, Richard Weinberger <richard@nod.at>,
- Dave Kleikamp <shaggy@kernel.org>,
- Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
- Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
- Joseph Qi <joseph.qi@linux.alibaba.com>, Mike Marshall
- <hubcap@omnibond.com>, Martin Brandenburg <martin@omnibond.com>,
- Miklos Szeredi <miklos@szeredi.hu>, Anders Larsen <al@alarsen.net>,
- Zhihao Cheng <chengzhihao1@huawei.com>, Naohiro Aota <naohiro.aota@wdc.com>,
- Johannes Thumshirn <jth@kernel.org>,
- John Johansen <john.johansen@canonical.com>, Paul Moore
- <paul@paul-moore.com>, James Morris <jmorris@namei.org>,
- "Serge E. Hallyn" <serge@hallyn.com>, Mimi Zohar <zohar@linux.ibm.com>,
- Roberto Sassu <roberto.sassu@huawei.com>,
- Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
- Eric Snowberg <eric.snowberg@oracle.com>, Fan Wu <wufan@kernel.org>,
- Stephen Smalley <stephen.smalley.work@gmail.com>,
- Ondrej Mosnacek <omosnace@redhat.com>,
- Casey Schaufler <casey@schaufler-ca.com>,
- Alex Deucher <alexander.deucher@amd.com>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
- Sumit Semwal <sumit.semwal@linaro.org>, Eric Dumazet <edumazet@google.com>,
- Kuniyuki Iwashima <kuniyu@google.com>, Paolo Abeni <pabeni@redhat.com>,
- Willem de Bruijn <willemb@google.com>, "David S. Miller"
- <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
- Simon Horman <horms@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
- Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
- Arnaldo Carvalho de Melo <acme@kernel.org>,
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
- Adrian Hunter <adrian.hunter@intel.com>, James Clark
- <james.clark@linaro.org>, "Darrick J. Wong" <djwong@kernel.org>,
- Martin Schiller <ms@dev.tdt.de>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
- fsverity@lists.linux.dev, linux-mm@kvack.org, netfs@lists.linux.dev,
- linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
- linux-nfs@vger.kernel.org, linux-cifs@vger.kernel.org,
- samba-technical@lists.samba.org, linux-nilfs@vger.kernel.org,
- v9fs@lists.linux.dev, linux-afs@lists.infradead.org, autofs@vger.kernel.org,
- ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
- ecryptfs@vger.kernel.org, linux-mtd@lists.infradead.org,
- jfs-discussion@lists.sourceforge.net, ntfs3@lists.linux.dev,
- ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
- linux-unionfs@vger.kernel.org, apparmor@lists.ubuntu.com,
- linux-security-module@vger.kernel.org, linux-integrity@vger.kernel.org,
- selinux@vger.kernel.org, amd-gfx@lists.freedesktop.org,
- dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
- linaro-mm-sig@lists.linaro.org, netdev@vger.kernel.org,
- linux-perf-users@vger.kernel.org, linux-fscrypt@vger.kernel.org,
- linux-xfs@vger.kernel.org, linux-hams@vger.kernel.org,
- linux-x25@vger.kernel.org
-References: <20260226-iino-u64-v1-0-ccceff366db9@kernel.org>
- <20260226-iino-u64-v1-1-ccceff366db9@kernel.org>
-Content-Language: en-US
-From: Damien Le Moal <dlemoal@kernel.org>
-Organization: Western Digital Research
-In-Reply-To: <20260226-iino-u64-v1-1-ccceff366db9@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] do_reconnect: expiry check of dclist BEFORE lookup using
+ it
+From: Patrick Cernko <pcernko@mpi-klsb.mpg.de>
+To: autofs@vger.kernel.org
+References: <67467749-9e0f-4b4c-b840-5a9a8c300671@mpi-klsb.mpg.de>
+Content-Language: en-US, de-DE
+Organization: Gemeinsame Einrichtungen der MPIs KL und SB
+In-Reply-To: <67467749-9e0f-4b4c-b840-5a9a8c300671@mpi-klsb.mpg.de>
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-512; boundary="------------ms070107070105080000070209"
+x-ms-reactions: disallow
 
-On 2/27/26 00:55, Jeff Layton wrote:
-> Change the inode hash/lookup VFS API functions to accept u64 parameters
-> instead of unsigned long for inode numbers and hash values. This is
-> preparation for widening i_ino itself to u64, which will allow
-> filesystems to store full 64-bit inode numbers on 32-bit architectures.
-> 
-> Since unsigned long implicitly widens to u64 on all architectures, this
-> change is backward-compatible with all existing callers.
-> 
-> Functions updated:
->   - hash(), find_inode_fast(), find_inode_by_ino_rcu(), test_inode_iunique()
->   - __insert_inode_hash(), iget_locked(), iget5_locked(), iget5_locked_rcu()
->   - ilookup(), ilookup5(), ilookup5_nowait()
->   - find_inode_nowait(), find_inode_rcu()
->   - inode_insert5(), insert_inode_locked4()
->   - insert_inode_locked() (local variable)
->   - dump_mapping() (local variable and format string)
-> 
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+This is a cryptographically signed message in MIME format.
 
-[...]
+--------------ms070107070105080000070209
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-> -int insert_inode_locked4(struct inode *inode, unsigned long hashval,
-> +int insert_inode_locked4(struct inode *inode, u64 hashval,
->  		int (*test)(struct inode *, void *), void *data)
->  {
->  	struct inode *old;
-> @@ -2642,7 +2642,7 @@ void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
->  		break;
->  	default:
->  		printk(KERN_DEBUG "init_special_inode: bogus i_mode (%o) for"
-> -				  " inode %s:%lu\n", mode, inode->i_sb->s_id,
-> +				  " inode %s:%llu\n", mode, inode->i_sb->s_id,
+SGkgYXV0b2ZzIGRldmVsb3BlcnMsDQoNCml0J3MgYmVlbiBxdWlldCBhIHdoaWxlIHNpbmNl
+IEkgc3VibWl0dGVkIHRoaXMgcGF0Y2ggYnV0IEkgbmV2ZXIgZ290IGFueSANCmZlZWRiYWNr
+IGlmIGl0IHdhcyBhY2NlcHRlZCBvciByZWplY3RlZC4gSXMgdGhlcmUgc29tZXRoaW5nIHdy
+b25nIHdpdGggDQpteSBzdWJtaXNzaW9uIG9yIGRpZG4ndCB5b3UgaGF2ZSB0aW1lIHlldCB0
+byByZXZpZXcgaXQuDQoNCk9uIDIwMjUtMTAtMDIgMTI6NTI6NDksIFBhdHJpY2sgQ2Vybmtv
+IHdyb3RlOg0KPiBIaSBhdXRvZnMgZGV2ZWxvcGVycywNCj4gDQo+IHRoaXMgcGF0Y2ggY2hh
+bmdlcyB0aGUgYmVoYXZpb3Igd2hlbiB0byByZWZyZXNoIExEQVAgU1JWIHJlY29yZHMuIFRo
+ZSANCj4gZG9jdW1lbnRhdGlvbiBzdGF0ZXM6DQo+IA0KPj4gVGhlIHNlcnZlciBsaXN0IHJl
+dHVybmVkIGZyb20gYW4gU1JWIFJSIGxvb2t1cCBpcyByZWZyZXNoZWQgYWNjb3JkaW5nIA0K
+Pj4gdG8gdGhlIG1pbmltdW0gdHRsIGZvdW5kIGluIHRoZSBTUlYgUlIgcmVjb3JkcyBvciBh
+ZnRlciBvbmUgaG91ciwgDQo+PiB3aGljaGV2ZXIgaXMgbGVzcy4NCj4gDQo+IEJ1dCB0aGUg
+Y29kZSBpbiBmYWN0IGRvZXMgbm90IGRvIGFueSByZWZyZXNoaW5nIGFzIGxvbmcgYXMgYXQg
+bGVhc3Qgb25lIA0KPiBzZXJ2ZXIgaW4gdGhlIGRjbGlzdCBzdGlsbCByZXNwb25kcy4NCj4g
+DQo+IFRoaXMgaXNzdWUgYmVjYW1lIG9idmlvdXMgaW4gb3VyIHNldHVwLCB3aGVuIHdlIGhh
+ZCB0byBkaXNhYmxlIHRoZSBmaXJzdCANCj4gdHdvIHNlcnZlcnM6IGF1dG9mcyBjb250aW51
+ZWQgdG8gY29udGFjdCBsZGFwLWEgYW5kIGxkYXAtYiwgcnVubmluZyBpbiANCj4gdGltZW91
+dHMgKH41c2VjKSBhbmQgZmluYWxseSBnb3QgYW4gYW5zd2VyIGZyb20gbGRhcC1jLiBCdXQg
+ZHVlIHRvIHRoZSANCj4gdGltZW91dHMgZXZlcnkgbW91bnQgdG9vayA+MTBzZWMgcmVzdWx0
+aW5nIGluIHNsb3cgcmVzcG9uc2l2ZW5lc3MgZm9yIA0KPiB0aGUgd2hvbGUgc3lzdGVtLiBD
+aGFuZ2luZyB0aGUgU1JWIHJlY29yZHMgKHdpdGggVFRMcyBvZiA3MjAwKSBkaWQgbm90IA0K
+PiBoZWxwLiBBcyBhIHdvcmthcm91bmQgd2UgaGFkIHRvIHNpZ25hbCBhbGwgY2xpZW50J3Mg
+YXV0b21vdW50IHByb2Nlc3NlcyANCj4gd2l0aCBIVVAuDQo+IA0KPiBUaGUgY2hhbmdlIGlu
+dmFsaWRhdGVzIHRoZSBkY2xpc3QgaWYgZXhwaXJlZC4gVGhpcyBmb3JjZXMgYXV0b2ZzIHRv
+IGRvIGEgDQo+IG5ldyBTUlYgcmVjb3JkIGxvb2t1cCBiZWZvcmUgZG9pbmcgdGhlIExEQVAg
+bG9va3VwLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KDQpCZXN0IHJlZ2FyZHMsDQotLSANClBh
+dHJpY2sgQ2VybmtvIDxwY2VybmtvQG1waS1rbHNiLm1wZy5kZT4gKzQ5IDY4MSA5MzI1IDU4
+MTUNCkpvaW50IFNjaWVudGlmaWMgSVQgYW5kIFRlY2huaWNhbCBTZXJ2aWNlDQpNYXgtUGxh
+bmNrLUluc3RpdHV0ZSBmw7xyIEluZm9ybWF0aWsgJiBTb2Z0d2FyZSBTeXN0ZW1zDQo=
 
-Hmmm. the type of ino in struct inode is changed in patch 2, not this patch. So
-this feels incorrect. Why not just squash patch 2 in here ?
+--------------ms070107070105080000070209
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-While at it, maybe you could change this to use pr_debug() too ?
-
--- 
-Damien Le Moal
-Western Digital Research
+MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgMFADCABgkqhkiG9w0BBwEAAKCC
+DU4wggZEMIIELKADAgECAhAV+a5sqo0u1NNveH8e3HsBMA0GCSqGSIb3DQEBCwUAMG8xCzAJ
+BgNVBAYTAkdSMTcwNQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5z
+dGl0dXRpb25zIENBMScwJQYDVQQDDB5IQVJJQ0EgQ2xpZW50IFJTQSBSb290IENBIDIwMjEw
+HhcNMjUwMTAzMTExMzA4WhcNMzkxMjMxMTExMzA3WjBjMQswCQYDVQQGEwJHUjE3MDUGA1UE
+CgwuSGVsbGVuaWMgQWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkG
+A1UEAwwSR0VBTlQgUy9NSU1FIFJTQSAxMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKC
+AYEAq7hur/5vIqMejblfPfZgGY75auSZz5SZ9x1dIIjvJrDBT0lIwQcAAoABJomkuv0kDK36
+2UH+uf9JrOdLBjiKkEh99HQPmT+d1+Ijnnd1aAjiL+2Q4aU16P/snITYJL2ROU46zqmDkdoO
+nCqMCEKSN74gHKDmApYfqXO8wmjmNA62wYHarp7lxgrBr0sk4BxHyKq52z0sWyxsdIy5V1K5
+OOkCNwYupZ9b74LRhelYP5SieNDqU0S6IpQOasVz5IS0vDnqVi2ni67Gbgtb8dBKzH6gbAwG
+ppHoeEFDcvJ042Oxtxt6BGolkUmguyfAgeisRqDjhQi+NfNgkDH81OLBV0eV07twS9axwNvJ
+AtH2SgGiWKrYeuBgVCzs1DFT7sws1KHyLrOdZU0hJQSDfoz/8jwFmXhWoPvQQuWEoo3uvH6L
+sHAo53aDF1aAUmGQ/JC72j7zZH16leJFuWj+t2TK/7YEVHtWluA9TOdx2Lz/SHh0/+pAVicD
+4N/QUWPuBhzPAgMBAAGjggFmMIIBYjASBgNVHRMBAf8ECDAGAQH/AgEAMB8GA1UdIwQYMBaA
+FKDWBz1eJPd7oEQuJFINGaorBJGnMFAGCCsGAQUFBwEBBEQwQjBABggrBgEFBQcwAoY0aHR0
+cDovL2NydC5oYXJpY2EuZ3IvSEFSSUNBLUNsaWVudC1Sb290LTIwMjEtUlNBLmNlcjBEBgNV
+HSAEPTA7MDkGBFUdIAAwMTAvBggrBgEFBQcCARYjaHR0cDovL3JlcG8uaGFyaWNhLmdyL2Rv
+Y3VtZW50cy9DUFMwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMEUGA1UdHwQ+MDww
+OqA4oDaGNGh0dHA6Ly9jcmwuaGFyaWNhLmdyL0hBUklDQS1DbGllbnQtUm9vdC0yMDIxLVJT
+QS5jcmwwHQYDVR0OBBYEFOuyLzv9rgLMKkQGXSXNHRIiaLBHMA4GA1UdDwEB/wQEAwIBhjAN
+BgkqhkiG9w0BAQsFAAOCAgEAO964RfbcPCuTKAq2wXsOZxMaaLxITbSOYkt7RMxPw3CzU2qm
+kTQALKbVqC1jUiNQWbkxZpsb8hy9FOHywH1xFmANAypks0Iuh+ovhqP90oFcfhvAfYxV2M0c
+Gga9mTKFHP+QET7HW9pZdyWFZAw5fmdW9Ex+IQmJii0w/sozzwhpVn0OQYkkRV+2ydRa68JZ
+S2NqAPpdaWoseM2X4u5+Jn+H2UO9paobX+ht91K2Ch8xzfREv4RLqBgpHBmkIDVygXNdXsKf
+DHy2hOXxtF6oI1d7ErPGWoBxFc86aUqQlC6pEjb3ug24w+eg1kJj7IufHJ3iRm67Rdw5M1Ol
+WMzxu+DwAKqFJhqes0OL/NOJOTuDCb0bIfVfjl8U0Y0QWCkhoCmNPZQQu6QM6Y/XxnALgRB4
+drA8kip98wSZQmbqptE8oac2ZzLKCHiJlTdBuREsundnpBXdahMSrJ/mYv2pMZLpYkbrkvyh
+orDVeH9t0a5UgPIFqGl8/ZzakJ3RQfr7HvdGur0YWU6KNWvY5BK8qHMRM0b3XtK9xREIGEyc
+hAVReodDIhjrR4fWmjpa006r/UrmSk4bpKrVFVzTYsSK3jy4ri1ExVQp6RI6Ou4ZdbfwOYCu
+I9wweMjpVBuqNzRKrVU/Pvp57gUzm4u+JJRkdioMOoxZrwsUiYr2KIojwTcwggcCMIIFaqAD
+AgECAhAA0DFH3E2mzj1AMMVjv/1SMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNVBAYTAkdSMTcw
+NQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5zdGl0dXRpb25zIENB
+MRswGQYDVQQDDBJHRUFOVCBTL01JTUUgUlNBIDEwHhcNMjUwODI3MTAzNTMyWhcNMjcwODI3
+MTAzNTMyWjCB3DELMAkGA1UEBhMCREUxDzANBgNVBAgMBkJheWVybjERMA8GA1UEBwwITXVl
+bmNoZW4xIDAeBgNVBAoMF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MSMwIQYDVQRhDBpMRUlY
+Ry04OTQ1MDBDNUw2VzRBREMxMlA4MjEPMA0GA1UEBAwGQ2VybmtvMRAwDgYDVQQqDAdQYXRy
+aWNrMRcwFQYDVQQDDA5QYXRyaWNrIENlcm5rbzEmMCQGCSqGSIb3DQEJARYXcGNlcm5rb0Bt
+cGkta2xzYi5tcGcuZGUwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCrM/8NomLw
+CLQmhCERp6bm3lWEB7LMsSgVsQlnaPR6XVc66i43ddRaL1aoeAtwawEXzKluMWNumGbg0XCe
+BFWYf+ajVH0eKMBrE2/PbFgxbWQXfPJjiXQnb2ZWgwCJqBcuDZC9/SKWyrSfUSfyH9PyHZ8P
+vEcGO1J/ORJtyDMCg7Jhzfrpwx0yIW4zhLBqbciwXlLnFKqlCp108xrNilL2DBkKNo4kkwAi
+FB8Un8EbwHVEdDORb4KknMuEXNtKSsT5Mn5boXsku2lHi30WOGZOxD3o7zpAmNFmThy1W7C+
+D3SIz6nB50erWohhb/b+8bfuIv/cFN9Z/O7KE9bk85a4eeUfoQX7KqHDqTcWXa1eO4SghyI7
+JLZR58WzyngnEnYTlUS9prrUl0nx+DjTQVKUhJUx6m6MEAiL0awfa7dEYIpWgzrEoag0fF4G
+fK7Patm2rDhAT1RzRKpnllJcCacAo83ZvC7Tj8LlkBotPePrMIsnP94i2AU1KOS1uzv8Av21
+9mwa1z5fJhzFcUHRSUDOJlaDt5HBd4G/i1LHOUMmlFpIHtNN9T7eFweF1FjVyS4Fr7Th9vry
+QfiZlmmgRaRUCJDJdBYuZDuJgKpCAnTykCCNwW+8BymgGD/qfZXx5HJnaXmG8E9kaV/kZWVe
+dz2tfW3JgJ61TVFsRRl7AsDuVwIDAQABo4IBtjCCAbIwHwYDVR0jBBgwFoAU67IvO/2uAswq
+RAZdJc0dEiJosEcwSgYIKwYBBQUHAQEEPjA8MDoGCCsGAQUFBzAChi5odHRwOi8vY3J0Lmhh
+cmljYS5nci9IQVJJQ0EtR0VBTlQtU01JTUUtUjEuY2VyME8GA1UdEQRIMEaBF3BjZXJua29A
+bXBpLWtsc2IubXBnLmRlgRZwY2VybmtvQG1waS1pbmYubXBnLmRlgRNwY2VybmtvQG1waS1z
+d3Mub3JnMGMGA1UdIARcMFowCQYHZ4EMAQUDAjAIBgYEAI96AQMwQwYNKwYBBAGBzxEBAQIE
+AjAyMDAGCCsGAQUFBwIBFiRodHRwczovL3JlcG8uaGFyaWNhLmdyL2RvY3VtZW50cy9DUFMw
+HQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMD8GA1UdHwQ4MDYwNKAyoDCGLmh0dHA6
+Ly9jcmwuaGFyaWNhLmdyL0hBUklDQS1HRUFOVC1TTUlNRS1SMS5jcmwwHQYDVR0OBBYEFJb7
+TBjIMvXJU16RfTsmTT6AO4VRMA4GA1UdDwEB/wQEAwIFoDANBgkqhkiG9w0BAQsFAAOCAYEA
+ec0PGQ+wIAAgBzkUDYzlNjM/IqzwAIV7cspUu1BbWzpmPhIp2zBKjjaxjX7bAh6eL2s0nFRI
+7CIBMoWbI40P5CKjRzO9UsfpzHTLGF/WS2tScPY1oPbF3nC9H3BRtIRFWkF9c1T+0xcfUSjC
+xrbAoXJwTuWQoyEy5O8J8F5ntHWrltDyIPsKgTx/Nj4ZZKkSG9bw5rm5hGw1YrRZyfL2aaaY
+zSKg19RnmzDyj4BozXos6JQkCNJqmzMlMNed1Jnud0Neofaw8c5VFa/ji12ZJb5rlt0IrFDO
+qTK30vXhCHWuDz+7NBO3zN8yrl7gI2xBa/UgmrD22dtoMRrpxxbNGXgem9lEN9aJtkd9oYrD
+kfI+EqXxBYycSyM7U8EALdXsiXyCJah4yrSZDPa7aHP9hXbpC7zPuwjDDFkekO+/+vBy0Gzu
+jZaxUQIdIPFK8IBh9M6ht/utZ4Us1zQDlqbZXjKUan1q2SSyhhtIk4AqSTxxKNsTq0x6H8Bo
+OeUsRzFgMYIFnjCCBZoCAQEwdzBjMQswCQYDVQQGEwJHUjE3MDUGA1UECgwuSGVsbGVuaWMg
+QWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkGA1UEAwwSR0VBTlQg
+Uy9NSU1FIFJTQSAxAhAA0DFH3E2mzj1AMMVjv/1SMA0GCWCGSAFlAwQCAwUAoIIC+DAYBgkq
+hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNjAyMjcwNzIyNTRaME8G
+CSqGSIb3DQEJBDFCBEA274yTo/NJeMNOPS/BaGSp83CEWLrol1KWCk8K8bXusRPkkcapl10T
+yofnER1v7lTlcNQasptLmB0TiccBvJTQMIGGBgkrBgEEAYI3EAQxeTB3MGMxCzAJBgNVBAYT
+AkdSMTcwNQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5zdGl0dXRp
+b25zIENBMRswGQYDVQQDDBJHRUFOVCBTL01JTUUgUlNBIDECEADQMUfcTabOPUAwxWO//VIw
+gYgGCyqGSIb3DQEJEAILMXmgdzBjMQswCQYDVQQGEwJHUjE3MDUGA1UECgwuSGVsbGVuaWMg
+QWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkGA1UEAwwSR0VBTlQg
+Uy9NSU1FIFJTQSAxAhAA0DFH3E2mzj1AMMVjv/1SMIIBVwYJKoZIhvcNAQkPMYIBSDCCAUQw
+CwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzANBggqhkiG9w0DAgIBBTAN
+BggqhkiG9w0DAgIBBTAHBgUrDgMCBzANBggqhkiG9w0DAgIBBTAHBgUrDgMCGjALBglghkgB
+ZQMEAgEwCwYJYIZIAWUDBAICMAsGCWCGSAFlAwQCAzALBglghkgBZQMEAgQwCwYJYIZIAWUD
+BAIHMAsGCWCGSAFlAwQCCDALBglghkgBZQMEAgkwCwYJYIZIAWUDBAIKMAsGCSqGSIb3DQEB
+ATALBgkrgQUQhkg/AAIwCAYGK4EEAQsAMAgGBiuBBAELATAIBgYrgQQBCwIwCAYGK4EEAQsD
+MAsGCSuBBRCGSD8AAzAIBgYrgQQBDgAwCAYGK4EEAQ4BMAgGBiuBBAEOAjAIBgYrgQQBDgMw
+DQYJKoZIhvcNAQEBBQAEggIAfYZxt99UH/42IBogEohIwK5klx2LARJyxW4+avHGaDGhfJDq
+y98x1+iZHO4H7nL7YPfnCUkZvqI3KBsOHCvs1D8iH1cPGVl+U/hea2CD0WwrlZu+ziHF4RVx
+DSY52DboluxojFlyFsL2o+0fjmivE2aGtMu+fHxyV4/Ir6l6gn8stzbnXXqHHhf7JSWP6USL
+LKSDu02pMQb6NATCtfYBWswBlnl9IqmUVHz3g8bjCKtP1DYQAiJ9LrEV84v6SYjDoChupRVF
+b7D/48SwCbhsgpDnLURGxlw7b+qFwiDGNn4CsAoKu5Sn15wAknlVb2DsENhVgv6XrB1ahj2r
+DKP4FSVXmcOP9E/Srg0PbYXln7sFLfsIo+tRw+gD5/bzDNLKymsEc+8XR/gZW5zzbtDJw3cV
+VVJa4li2TItD2E3iX/Yyq06zWlRgUK7fIicFVUbaCn8T+7SXrM1WbF2KCYGCT/84yJCYBvb/
+uzQagwTjK03H/QrpxHYJ/g0jEI5Xl7+FDUaHKquRhPrbzX8sktrref0P18BjH4qGfI09CqOT
+QMQqNEU1yjmItm1bCXGSLikUbaVo1/H+8S7AH++O67A6hxMJL4QTiMi96jq3fpdG+WTcLjui
+ZxvhRQHu1qwrPfl8BWwxIaXGLm0C//sVYsvIR5o98guxIIcmwyFKw3sZXzAAAAAAAAA=
+--------------ms070107070105080000070209--
