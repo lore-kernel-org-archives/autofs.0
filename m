@@ -1,194 +1,273 @@
-Received: from flow-b6-smtp.messagingengine.com (flow-b6-smtp.messagingengine.com [202.12.124.141])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f208.google.com (mail-oi1-f208.google.com [209.85.167.208])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8646F2E6CAB;
-	Mon,  3 Aug 2026 01:39:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE1A52F7F12
+	for <autofs@vger.kernel.org>; Thu,  6 Aug 2026 00:13:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785721157; cv=none; b=TffIN9hop90xkJ2NwkdJTYuiH1T2tBBGOZi0J3gjfCyYjGlrG2UODiaU9lD2Bj+qSCNeUN9p6QCUO4eNgerzjch4ut+GSNNNG+klbdVx9hKSsGUHyp3J/IBrB2MomUC1OzyTj3tvrR7d0YllqzyZBgjBpj/TOn4umLMZQf/sLrY=
+	t=1785975211; cv=none; b=bwTbxUI0VdBTGV8DB/FzJ7zRgE7VohXhzr4mKkDeRJteEKANuv9fFvOU4sMZzSnDrnBSu3Xzink0Rzj43r/J5327ZWukVanL+X8zHlE0usv8zFjdrgotcbSKVYIXGvLGkqP8u1xBS6nPKox/razTx7QZbvGyEwTPOT/zHSlUcxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785721157; c=relaxed/simple;
-	bh=xah1IZBUivqmQDuiMbVbkX4ugtrL2Xtzx9N4QCKerkc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p1+gWGu2VN8d1zz1uIL58yyzz1F1mCIS9uVDy2CiIp1Q1Nm7W7ZXbzwJY+6h3b/8Qn3k/vH/G9VOcVC/f4sQzsSwbGPeWY2LPD091yDilUsoSveWFzKhtnhtfexxBoynsAf90eL/ndunU8UZ9RIyPzVhaFuDWjn97rTMxkm70FQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=MmTcyLcM; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Kcsz9Wpk; arc=none smtp.client-ip=202.12.124.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="MmTcyLcM";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Kcsz9Wpk"
-Received: from phl-compute-06.internal (phl-compute-06.internal [10.202.2.46])
-	by mailflow.stl.internal (Postfix) with ESMTP id 7C7B51300128;
-	Sun,  2 Aug 2026 21:39:15 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-06.internal (MEProxy); Sun, 02 Aug 2026 21:39:16 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:reply-to:subject:subject:to:to; s=fm3; t=1785721155;
-	 x=1785728355; bh=48Fkc2hhO16ufhmd1558xtjY3jyS/m26wkZxQxAYLN4=; b=
-	MmTcyLcMzoglUJq5DvMYnZYd5dxPosypo6M/Czfn6KbZhjhaV5cGXYOeTv4oR0TT
-	sgQeNmTSOWtAIK1eFjh0CppB+cW3OJOGTEKFbINbZG+7FMGsDxBdw7q2B9GXviVm
-	trc4zXspmN/Ddr2UGslL7EdXUOGsx0inSYQAn4Tnm8JA5WXxbhw2lujtXlZ2j5uS
-	Oi9DUHD2G5p/kuC+nIFF9/K/rDiy2GpJykkv6lPqSgOCTwIpZKFEz2Yang/bbglA
-	//wkYWxj5HmN/ShJAlYORy8aCkVzy4YMuaUlsR7cM2m80DBbodnC+Qyl3uUgFxwg
-	JFOaflya03Xaiy9RAjuWoQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
-	:x-me-sender:x-sasl-enc; s=fm3; t=1785721155; x=1785728355; bh=4
-	8Fkc2hhO16ufhmd1558xtjY3jyS/m26wkZxQxAYLN4=; b=Kcsz9WpkZmbKKAn7R
-	BSWde2q3tmv1TuCv/DZM6/QYpvZdyb4+1GtF0ImDSLUDaSYmHIEXV7e3AiN1/idL
-	4hyTU7pBZjIKFjfwp7w/NuJuT+GJgpmz/RnV8PIZrcPawUhFJ6/bCFw6T3KuHeKe
-	FfXEpr4K+fRWcUFeMt/hgZm38kep6eBowrLSAijJJdo9NIS0vpYXcz76uzCigAYS
-	LE3zGsGX7ATZz+Ce1bTJtoum4SRvYsAW7S5oqdV2vXJKwHPVprraItJvn2SidkDF
-	Et0n8U4syijG6V2teDdrN9r9IYsdi6JiZ3lEAIkpaVyxkkrr1HgGA0G8kccUYo7g
-	MhIfg==
-X-ME-Sender: <xms:Q_Fvao4OVt1w0DDQ-nTkHW0vRax88fuU8qfppt0KxI4PzNqT92Uoog>
-    <xme:Q_FvaiEZaOxw5w0nvqFa6h4kHWc88-GWzJOiJkhKb71AWUItQyZA2x36nSP4DJdJX
-    FLdCo903k0Rr1gjV_M2JxJDH7GK4zB_r1Dk_xXqjXZ8rCRRjFg>
-X-ME-Received: <xmr:Q_Fvauxqm_Z2j-DFGTtsnAgP44uhKD1605Lqs1xzbn31NI--xqChYDCF5aRzxMMZRQ26gGe9Wny5eI_0GsLV2P2Lf-S5SWc>
-X-ME-Proxy-Cause: dmFkZTEkjpQitAtmxGBQYKqyuxI2Zkeo3c6RoaKCNErqeb7OpTUkwok+umPK8wjjzKilLR
-    oEkJ4cvJVGjSJ84RQAU1yMp4OnVAa0j48I+IZh9Fdm8T9NlXb22vW2b++I/w1xpR0D9cGg
-    PY5vxXMwbazIrQndnHZZeUaDjtiO7oMO4JfvURQOW8xpTRIAhWmk/yj3tGiTCFDkK11PUi
-    8zP+PAM6p9S6yYk+YxJK09JqJLxfofUFwglAMcxid0fjJ/8eCuMBF6ZgJ9khwYNTvmmvDv
-    XHb98vv+s9pbhqVhgG7tjgoBPJWqvJT0PbLNRH63wXqa3Yd9frMtJBXjxnj2koyaKciEdl
-    uFMMz/4CEUcGyouzkIImU/OhVANGkyFS72dBLv8gabALYxnV5Tqh6acfylQZWUdliw+z9E
-    bY051siIlw2Ox7ryWHJ5c0bt3NjEccKlc099E7t+VNREBTdm8Jj+6iKP0C+r6YGgyGTDcw
-    q4sQLDcx7PBXLdmd26XcAXfyMzQu66MviRh0kq6A4mXxLyX9JOUvnTnZ3BoCPIz3FNVnj/
-    brhwej9bFhJXHOMEsW1uxSwNwWTzwQeozhxzEJicXviJfH0NqSaAH6OGUX5cgpxPJgji6/
-    N74k5PdE+TwvVvSOKrfR2olAgDTA2/Y+MSeg4U8X3elFfFCDTVNchi2yLV9g
-X-ME-Proxy: <xmx:Q_Fvaq20vStdJhBNvOoSTb4g19GsvIWQlei5GuXvWwvPK7NMNTvZCA>
-    <xmx:Q_FvapOKN_432hnaW59iQu0Nu7qbmCS9Eu2SC5VVgO2g60pxwiJ8NQ>
-    <xmx:Q_Fvaute9IUlAcE3n2mumi95ElbmkuaWisvaItgo5JRVmkm3TYiBzA>
-    <xmx:Q_FvalInVHTSd5EPpi7oprbXA0FqpodVYjtUJg7J4sBNztjtGScCVw>
-    <xmx:Q_FvakJ0jH_MWyiL7sI7PtHnFADOaliSXLBWRfFFhdNaTJMwlL03Z6kv>
-Feedback-ID: i9d664b8f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 2 Aug 2026 21:39:07 -0400 (EDT)
-From: NeilBrown <neilb@ownmail.net>
-To: Ian Kent <raven@themaw.net>,
-	Chuck Lever <cel@kernel.org>,
-	Jake Edge <jake@lwn.net>,
-	Ilya Dryomov <idryomov@gmail.com>,
-	Alex Markuze <amarkuze@redhat.com>,
-	Viacheslav Dubeyko <slava@dubeyko.com>,
-	Jan Harkes <jaharkes@cs.cmu.edu>,
-	coda@cs.cmu.edu,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Trond Myklebust <trondmy@kernel.org>,
-	Anna Schumaker <anna@kernel.org>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Miklos Szeredi <mszeredi@redhat.com>
-Cc: autofs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	ceph-devel@vger.kernel.org,
-	codalist@coda.cs.cmu.edu,
-	linux-fsdevel@vger.kernel.org,
-	linux-nfs@vger.kernel.org
-Subject: [PATCH v1 12/12] libfs: remove cond_resched() from scan_positives()
-Date: Mon,  3 Aug 2026 11:21:21 +1000
-Message-ID: <20260803012648.2195405-13-neilb@ownmail.net>
-X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
-In-Reply-To: <20260803012648.2195405-1-neilb@ownmail.net>
-References: <20260803012648.2195405-1-neilb@ownmail.net>
-Reply-To: NeilBrown <neil@brown.name>
+	s=arc-20240116; t=1785975211; c=relaxed/simple;
+	bh=k5uDvxc8XvzO8I70DCwW8eHW6ro0+GTYHmqic9zVSCI=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=SPdvuNEJ5rZSs00+nl4UEfIWX2R7jpk/Yc/evMnVMp4u6IB2CXtRwWYkHQGJZiKlKyM1V8eRsi7vrUkTCYB5ktxAUe2z6u3+nd70QtevZe62UTcseBTWn3yspvWEfy2QCxRiAxj4WdNgZqaJ7pLREMXawzdXVvJ0Vc9wWSHwpFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f208.google.com with SMTP id 5614622812f47-4ab4f78b9f4so2066160b6e.2
+        for <autofs@vger.kernel.org>; Wed, 05 Aug 2026 17:13:29 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785975208; x=1786580008;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=IuxzatalOz63BgfndC3gH7+t4WCp8R+J+0dGuWkfh7E=;
+        b=YushPoeLOmroDzsadSitIvW2yYS0mHtLZCo30YgH2UVLNRfnNEtW0ozGZsFaPROiqi
+         4M7CjIrK935m4Wxjqo5kQdzSVDkwxFAp+FXrn9hzGGJz+W/78k2iH2wv2lSa0gnT5zNG
+         sS4P5hXOvcJkHx2ZAQ4YHAd4aLGAHRWXfW6NQBxh6AHHa983/dwP92Un9r70zNaC/d6K
+         oXR7UbKlLcxRkgKT9mFW7HCL+HeBGqUtS4se9Vn9fjEFNLh+Waa889UWknPE+rUQJpHF
+         l/jmQ61/dki3uHjDbOYuumGP1cq3Pdx9Uy95u9+zrBiciM812Vgr3eYAN9SUDm3PlAdA
+         wTaQ==
+X-Gm-Message-State: AOJu0YzJR1Y9qEfMuGFZWgxg7gJuDUIfNnDwkh/tJRpbw9d7PtKn4Yvl
+	TiaG0rmaK1UI8l+pF7BUOBuUGDtRSduJ/XRAG7V9m2wqmM8V7FBwlzBJTh1RRXUUAHA4EQVOLNR
+	/145Re02BviGgmsf7XVO/MYgs3N08wQ+it7dTbxSAMaPPxOeRAkXl8ozCPRDW8w==
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6820:3089:b0:6ac:ae42:f4d2 with SMTP id
+ 006d021491bc7-6ae96c847e1mr6192030eaf.8.1785975208663; Wed, 05 Aug 2026
+ 17:13:28 -0700 (PDT)
+Date: Wed, 05 Aug 2026 17:13:28 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a73d1a8.b50370da.49fe0.0009.GAE@google.com>
+Subject: [syzbot] [autofs?] possible deadlock in autofs_notify_daemon (3)
+From: syzbot <syzbot+2b1c8c58f62458852a54@syzkaller.appspotmail.com>
+To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-From: NeilBrown <neil@brown.name>
+Hello,
 
-Now that d_for_each_positive_child_continue() calls cond_resced() as
-needed, scan_positives() doesn't need to any more.
+syzbot found the following issue on:
 
-Signed-off-by: NeilBrown <neil@brown.name>
+HEAD commit:    0131b508c0e2 Merge tag 'ntfs-for-7.2-rc6' of git://git.ker..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10daee32580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=145fa60d73086782
+dashboard link: https://syzkaller.appspot.com/bug?extid=2b1c8c58f62458852a54
+compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/237b6b227f6e/disk-0131b508.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/90a5294c2a5d/vmlinux-0131b508.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/54d17924c110/bzImage-0131b508.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+2b1c8c58f62458852a54@syzkaller.appspotmail.com
+
+======================================================
+WARNING: possible circular locking dependency detected
+syzkaller #0 Tainted: G             L     
+------------------------------------------------------
+syz.4.2436/14866 is trying to acquire lock:
+ffff8880243be138 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
+ffff8880243be138 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
+
+but task is already holding lock:
+ffff888055e70880 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&of->mutex){+.+.}-{4:4}:
+       lock_acquire kernel/locking/lockdep.c:5868 [inline]
+       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
+       kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
+       iter_file_splice_write+0x830/0x10b0 fs/splice.c:736
+       do_splice_from fs/splice.c:936 [inline]
+       do_splice+0x109c/0x1f90 fs/splice.c:1349
+       __do_splice+0x33b/0x370 fs/splice.c:1431
+       __do_sys_splice fs/splice.c:1634 [inline]
+       __se_sys_splice fs/splice.c:1616 [inline]
+       __x64_sys_splice+0x187/0x250 fs/splice.c:1616
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (&pipe->mutex){+.+.}-{4:4}:
+       lock_acquire kernel/locking/lockdep.c:5868 [inline]
+       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
+       anon_pipe_write+0x25e/0x1d90 fs/pipe.c:553
+       __kernel_write_iter+0x6bb/0x930 fs/read_write.c:621
+       __kernel_write+0xf6/0x140 fs/read_write.c:641
+       autofs_write fs/autofs/waitq.c:57 [inline]
+       autofs_notify_daemon+0x50d/0xd90 fs/autofs/waitq.c:164
+       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
+       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
+       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
+       follow_automount fs/namei.c:1565 [inline]
+       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
+       traverse_mounts fs/namei.c:1647 [inline]
+       handle_mounts fs/namei.c:1749 [inline]
+       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
+       step_into fs/namei.c:2152 [inline]
+       walk_component fs/namei.c:2288 [inline]
+       lookup_last fs/namei.c:2789 [inline]
+       path_lookupat+0x58b/0xc40 fs/namei.c:2813
+       filename_lookup+0x202/0x590 fs/namei.c:2842
+       do_fchownat+0xe6/0x1f0 fs/open.c:800
+       __do_sys_lchown fs/open.c:829 [inline]
+       __se_sys_lchown fs/open.c:827 [inline]
+       __x64_sys_lchown+0x7e/0xc0 fs/open.c:827
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (&sbi->pipe_mutex){+.+.}-{4:4}:
+       check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
+       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
+       validate_chain kernel/locking/lockdep.c:3908 [inline]
+       __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
+       lock_acquire kernel/locking/lockdep.c:5868 [inline]
+       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
+       autofs_write fs/autofs/waitq.c:55 [inline]
+       autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
+       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
+       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
+       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
+       follow_automount fs/namei.c:1565 [inline]
+       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
+       traverse_mounts fs/namei.c:1647 [inline]
+       handle_mounts fs/namei.c:1749 [inline]
+       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
+       step_into fs/namei.c:2152 [inline]
+       walk_component fs/namei.c:2288 [inline]
+       lookup_last fs/namei.c:2789 [inline]
+       path_lookupat+0x58b/0xc40 fs/namei.c:2813
+       filename_lookup+0x202/0x590 fs/namei.c:2842
+       kern_path+0x37/0x50 fs/namei.c:3036
+       lookup_bdev+0xd8/0x280 block/bdev.c:1208
+       resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
+       kobj_attr_store+0x58/0x80 lib/kobject.c:840
+       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
+       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
+       new_sync_write fs/read_write.c:595 [inline]
+       vfs_write+0x6ac/0x1050 fs/read_write.c:687
+       ksys_write+0x12a/0x250 fs/read_write.c:739
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+Chain exists of:
+  &sbi->pipe_mutex --> &pipe->mutex --> &of->mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&of->mutex);
+                               lock(&pipe->mutex);
+                               lock(&of->mutex);
+  lock(&sbi->pipe_mutex);
+
+ *** DEADLOCK ***
+
+4 locks held by syz.4.2436/14866:
+ #0: ffff888057e055f0 (&f->f_pos_lock){+.+.}-{4:4}, at: fdget_pos+0x2aa/0x380 fs/file.c:1259
+ #1: ffff88807f95c450 (sb_writers#8){.+.+}-{0:0}, at: ksys_write+0x12a/0x250 fs/read_write.c:739
+ #2: ffff888055e70880 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
+ #3: ffff88801f287698 (kn->active#70){.+.+}-{0:0}, at: kernfs_get_active_of fs/kernfs/file.c:73 [inline]
+ #3: ffff88801f287698 (kn->active#70){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x332/0x5f0 fs/kernfs/file.c:337
+
+stack backtrace:
+CPU: 0 UID: 0 PID: 14866 Comm: syz.4.2436 Tainted: G             L      syzkaller #0 PREEMPT(full) 
+Tainted: [L]=SOFTLOCKUP
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/16/2026
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
+ print_circular_bug.cold+0x178/0x1c7 kernel/locking/lockdep.c:2043
+ check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2175
+ check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
+ check_prevs_add kernel/locking/lockdep.c:3284 [inline]
+ validate_chain kernel/locking/lockdep.c:3908 [inline]
+ __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
+ lock_acquire kernel/locking/lockdep.c:5868 [inline]
+ lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
+ __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+ __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
+ autofs_write fs/autofs/waitq.c:55 [inline]
+ autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
+ autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
+ autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
+ autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
+ follow_automount fs/namei.c:1565 [inline]
+ __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
+ traverse_mounts fs/namei.c:1647 [inline]
+ handle_mounts fs/namei.c:1749 [inline]
+ step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
+ step_into fs/namei.c:2152 [inline]
+ walk_component fs/namei.c:2288 [inline]
+ lookup_last fs/namei.c:2789 [inline]
+ path_lookupat+0x58b/0xc40 fs/namei.c:2813
+ filename_lookup+0x202/0x590 fs/namei.c:2842
+ kern_path+0x37/0x50 fs/namei.c:3036
+ lookup_bdev+0xd8/0x280 block/bdev.c:1208
+ resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
+ kobj_attr_store+0x58/0x80 lib/kobject.c:840
+ sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
+ kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
+ new_sync_write fs/read_write.c:595 [inline]
+ vfs_write+0x6ac/0x1050 fs/read_write.c:687
+ ksys_write+0x12a/0x250 fs/read_write.c:739
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fc8e1d9e019
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fc8e2c6a028 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fc8e2026360 RCX: 00007fc8e1d9e019
+RDX: 0000000000000012 RSI: 0000200000000040 RDI: 000000000000000c
+RBP: 00007fc8e1e3500c R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fc8e20263f8 R14: 00007fc8e2026360 R15: 00007ffe9c4403d8
+ </TASK>
+PM: Image not found (code -22)
+
+
 ---
- fs/libfs.c | 20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/fs/libfs.c b/fs/libfs.c
-index c0771e8b645c..b4c9cfdc1907 100644
---- a/fs/libfs.c
-+++ b/fs/libfs.c
-@@ -105,7 +105,6 @@ EXPORT_SYMBOL(dcache_dir_close);
-  * If no such element exists, NULL is returned.
-  */
- static struct dentry *scan_positives(struct dentry *dentry,
--				     struct dentry *cursor,
- 				     struct dentry *last,
- 				     loff_t count)
- {
-@@ -122,15 +121,6 @@ static struct dentry *scan_positives(struct dentry *dentry,
- 				break;
- 			count = 1;
- 		}
--		if (cursor && need_resched()) {
--			if (!hlist_unhashed(&cursor->d_sib))
--				__hlist_del(&cursor->d_sib);
--			hlist_add_behind(&cursor->d_sib, &d->d_sib);
--			d = cursor;
--			spin_unlock(&dentry->d_lock);
--			cond_resched();
--			spin_lock(&dentry->d_lock);
--		}
- 	}
- 	dput(last);
- 	return found;
-@@ -157,7 +147,7 @@ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int whence)
- 		inode_lock_shared(dentry->d_inode);
- 
- 		if (offset > 2)
--			to = scan_positives(dentry, cursor, NULL, offset - 2);
-+			to = scan_positives(dentry, NULL, offset - 2);
- 		spin_lock(&dentry->d_lock);
- 		hlist_del_init(&cursor->d_sib);
- 		if (to)
-@@ -191,7 +181,7 @@ int dcache_readdir(struct file *file, struct dir_context *ctx)
- 	if (ctx->pos > 2)
- 		next = dget(cursor);
- 
--	while ((next = scan_positives(dentry, cursor, next, 1)) != NULL) {
-+	while ((next = scan_positives(dentry, next, 1)) != NULL) {
- 		if (!dir_emit(ctx, next->d_name.name, next->d_name.len,
- 			      d_inode(next)->i_ino,
- 			      fs_umode_to_dtype(d_inode(next)->i_mode)))
-@@ -445,7 +435,7 @@ offset_dir_lookup(struct dentry *parent, loff_t offset)
- 	MA_STATE(mas, &octx->mt, offset, offset);
- 
- 	if (offset == DIR_OFFSET_FIRST)
--		found = scan_positives(parent, NULL, NULL, 1);
-+		found = scan_positives(parent, NULL, 1);
- 	else {
- 		rcu_read_lock();
- 		spin_lock(&parent->d_lock);
-@@ -467,7 +457,7 @@ offset_dir_lookup(struct dentry *parent, loff_t offset)
- 		spin_unlock(&parent->d_lock);
- 		rcu_read_unlock();
- 		if (found && !simple_positive(found))
--			found = scan_positives(parent, NULL, found, 1);
-+			found = scan_positives(parent, found, 1);
- 	}
- 	return found;
- }
-@@ -493,7 +483,7 @@ static void offset_iterate_dir(struct file *file, struct dir_context *ctx)
- 		if (!offset_dir_emit(ctx, dentry))
- 			break;
- 
--		dentry = scan_positives(dir, NULL, dentry, 1);
-+		dentry = scan_positives(dir, dentry, 1);
- 
- 		if (!dentry)
- 			goto out_eod;
--- 
-2.50.0.107.gf914562f5916.dirty
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
