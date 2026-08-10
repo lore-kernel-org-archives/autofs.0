@@ -1,273 +1,153 @@
-Received: from mail-oi1-f208.google.com (mail-oi1-f208.google.com [209.85.167.208])
+Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE1A52F7F12
-	for <autofs@vger.kernel.org>; Thu,  6 Aug 2026 00:13:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.208
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785975211; cv=none; b=bwTbxUI0VdBTGV8DB/FzJ7zRgE7VohXhzr4mKkDeRJteEKANuv9fFvOU4sMZzSnDrnBSu3Xzink0Rzj43r/J5327ZWukVanL+X8zHlE0usv8zFjdrgotcbSKVYIXGvLGkqP8u1xBS6nPKox/razTx7QZbvGyEwTPOT/zHSlUcxY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785975211; c=relaxed/simple;
-	bh=k5uDvxc8XvzO8I70DCwW8eHW6ro0+GTYHmqic9zVSCI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=SPdvuNEJ5rZSs00+nl4UEfIWX2R7jpk/Yc/evMnVMp4u6IB2CXtRwWYkHQGJZiKlKyM1V8eRsi7vrUkTCYB5ktxAUe2z6u3+nd70QtevZe62UTcseBTWn3yspvWEfy2QCxRiAxj4WdNgZqaJ7pLREMXawzdXVvJ0Vc9wWSHwpFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f208.google.com with SMTP id 5614622812f47-4ab4f78b9f4so2066160b6e.2
-        for <autofs@vger.kernel.org>; Wed, 05 Aug 2026 17:13:29 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785975208; x=1786580008;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C2C3C37B3
+	for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 11:49:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.182
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786362598; cv=pass; b=UBZRRh07YiFXdgIi2yIxGtE6BMpzzTQjD2s0bTZ0qC5GVZRiyDb7DlcXjMgHflrV1kjdp9iVDA4uxLtzMCiGqTLKv4jPBPQm9cKRrWXMTfgYkfgZlWtRYP5NNUKg7c8VqpM38Dd+OxpSwZzokiXiUUpLyFDM2clm33OdF8Q9KEo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786362598; c=relaxed/simple;
+	bh=bqxhj80OHCfs2l0pmZXo9T6EE/Q+XSI4ASVci9J8bsI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YudJwXs3eDRKF9EBCJwAFJiaMpD7PXpwVf66RHbGnMbZcmlHwkEaMeuYU4G9dmjlZR/abs78JjWAbtcymV9YJyFAuKZNY8hZwRvfnGAHivWq7jt/CYf+urrpihzym8jVjwjQUae6Ky2ViaQLsVzW8f2PWQMU9twN5kYeex/xSlo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=JbIlTHjY; arc=pass smtp.client-ip=209.85.222.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="JbIlTHjY"
+Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-930f618435cso95121585a.3
+        for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 04:49:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786362595; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ZP9kRXJy0evqOEVesV3A97oTjp+iIIOCopVeDvdILX4AauQtle9CqFD6X9ZqzVMBGn
+         1dGiorihyMy7Ytm6sSx3dNNhRuGISdYO3HNFlBxAOOwjbk2DMchL2JRwHSP8B7o06sWB
+         Ayo82bxUKlchf0eb9gXdYnGY6vZ06OWJfjJzYgTy/qEJdeVuF7kOEh5kaZHrqiJjtVWx
+         t9cLE/amwz7QKDuCBeHHN492r+Ot3WCo1QsaTyRuLAPhAfo8YKhYc9GOBRq7pcbiuJ+O
+         gP3D5omTDFZryUnUJxex1naXD90nAZTTHSPrso4UsdQCaFRhuTCABdHIatT/Fo0e+rNj
+         22NQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
+        fh=b7ZkR2Wf5E0h1eWiWX5IG9gVxqLIQubZabFpRQSRrog=;
+        b=o63vMeo/kup727KvcXZkvZCLwPHXIBenuy44W34xH+YYBjBOCcWf/55K/uyfhVK5UJ
+         wQmc4DMEgf40O+9tt+lrcF8pGEnQwV2/oUUvTiWr6QSGzm/2hVthSSrgEOfxVG3JSZGo
+         vEHAX2kZZlY1H2NUyjHS39TWzgkGNALc9tlv6TU8cUjAe+YZz0fcwvvRx0W/Ai4PenLz
+         D0FcpI17SpohqmiUILH731uA5/3lrv0q67Sth56576A3G/jf9RH83bKjz2dCqhHOpVl/
+         GBe+8dlceIxKrSdz0cE5fNlLDAsadxYo89pW3/AWyvg1+MIYavbm/1a5QbrFcY2E3YVA
+         7lUA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1786362595; x=1786967395; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=IuxzatalOz63BgfndC3gH7+t4WCp8R+J+0dGuWkfh7E=;
-        b=YushPoeLOmroDzsadSitIvW2yYS0mHtLZCo30YgH2UVLNRfnNEtW0ozGZsFaPROiqi
-         4M7CjIrK935m4Wxjqo5kQdzSVDkwxFAp+FXrn9hzGGJz+W/78k2iH2wv2lSa0gnT5zNG
-         sS4P5hXOvcJkHx2ZAQ4YHAd4aLGAHRWXfW6NQBxh6AHHa983/dwP92Un9r70zNaC/d6K
-         oXR7UbKlLcxRkgKT9mFW7HCL+HeBGqUtS4se9Vn9fjEFNLh+Waa889UWknPE+rUQJpHF
-         l/jmQ61/dki3uHjDbOYuumGP1cq3Pdx9Uy95u9+zrBiciM812Vgr3eYAN9SUDm3PlAdA
-         wTaQ==
-X-Gm-Message-State: AOJu0YzJR1Y9qEfMuGFZWgxg7gJuDUIfNnDwkh/tJRpbw9d7PtKn4Yvl
-	TiaG0rmaK1UI8l+pF7BUOBuUGDtRSduJ/XRAG7V9m2wqmM8V7FBwlzBJTh1RRXUUAHA4EQVOLNR
-	/145Re02BviGgmsf7XVO/MYgs3N08wQ+it7dTbxSAMaPPxOeRAkXl8ozCPRDW8w==
+        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
+        b=JbIlTHjYRbq+ZIsCxsszUYyLNHxgDCPjN9Ma1WEhKH7MRmWe7joIBbYWWomP9gcZOk
+         LFfIYMBfmj2D+xlKmRu9u/RX7WEdZqwmK+o11C1r04InwcwfFNVdcqh2Sg5WKYqi1/Rt
+         KFQGIwIBoE4APpF/F9Jcwrx5z06thfkeft49Q=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786362595; x=1786967395;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
+        b=KbdeJX4Bkk/gxKKoY3JM+wrLGYgPRuQZE25ybTy1oD4I256n2AVzgaCuqBTAxDc+YQ
+         JVVAcXNelTLkgV9PyivvCbJMcn6q18bxeOOd2G07mQPOIfTljPrYeOngbfUXN3nymWz3
+         +5FjWP1k27Ns2yege5I+JeP0+fwa/Rj77jgCxHhI8b6DAApaNcvbxiEZxOy8jr5584/K
+         KqKXeBmh8j7xXuLrUdDmssW7KzdYtgqhBeTC6iC+JlCryhzQjLGpIf87GZ+1QQ+VB3cF
+         buk7vIhNpj3OdJsOcSumDnAZIKKnobZzRqj/iJLYQQPPRuG9Ad2jqDmKiQlGmZJsYTcP
+         BCzA==
+X-Forwarded-Encrypted: i=1; AHgh+RrEnAH+IKBC1WKXXNR1o9EIlDh4DhU+Do3fD9BQ/l/0mU1mho6igzweSTu3tzWYOeAE89XhQs4=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzOT7mKpfaBcm9dikAOomzJjh5/k8hCUIJAmbwTrUxAfI1Sz11q
+	YYcxJR79BknOrMh5/Une3PLe3c1F0bv85csrCzun2+9s9pCGpttLfZ/XW06/Wo0mZNvlz7VDq6J
+	nYg28+PzhMOA/z7Mq0XcomHdi25bomV/YFYTxu66jFg==
+X-Gm-Gg: AR+sD13y6lAtuf/zoRwdBoWRVNMyLQUZA8dQ3UDAlWdGWmKq+DipROIixWtEIHfoJIp
+	MdAIU4CJ262m6JsY1054R0L7tQKpv3lnC0A9A6FrgCariIetmg2C0JOHJlQcRpq7USfOIjn5P4g
+	J4AYgVDECayaSv+K2ZGeXEGDKc35xlOPxThQiQNKdV3R3GYyny4rSWaPO5zbZjGZf1t/UW41aDZ
+	UhATkd8X5KzIUQwtlGOkdbVTG8JxiqLFuLplEIdz1rcnxJ/7DHVVWqjQfqZIEsdP1qI8MhiwZIi
+	CKPN1sjOPrDkC7/QUsD1X4u5hl4TQbIKhfoQwVhklpBS0FWHXkvrDo3hV438e+qeBaBj2jhs4RM
+	=
+X-Received: by 2002:a05:620a:818d:b0:914:bf8a:ba81 with SMTP id
+ af79cd13be357-9369d1ba3femr59440385a.27.1786362595054; Mon, 10 Aug 2026
+ 04:49:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:3089:b0:6ac:ae42:f4d2 with SMTP id
- 006d021491bc7-6ae96c847e1mr6192030eaf.8.1785975208663; Wed, 05 Aug 2026
- 17:13:28 -0700 (PDT)
-Date: Wed, 05 Aug 2026 17:13:28 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a73d1a8.b50370da.49fe0.0009.GAE@google.com>
-Subject: [syzbot] [autofs?] possible deadlock in autofs_notify_daemon (3)
-From: syzbot <syzbot+2b1c8c58f62458852a54@syzkaller.appspotmail.com>
-To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net, 
-	syzkaller-bugs@googlegroups.com
+References: <20260803012648.2195405-1-neilb@ownmail.net> <20260803012648.2195405-2-neilb@ownmail.net>
+In-Reply-To: <20260803012648.2195405-2-neilb@ownmail.net>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Mon, 10 Aug 2026 13:49:42 +0200
+X-Gm-Features: AUfX_mzmgezsTeEsc_HIV9oG5qNwHpchZPEJUwGx53Ztx5haBzb4JhKil_bknQc
+Message-ID: <CAJfpegt1wHngLs9uR943gT6zxV67D53k3n4GiFKowsAb3C6LJw@mail.gmail.com>
+Subject: Re: [PATCH v1 01/12] VFS: don't count references through ->d_parent
+To: NeilBrown <neil@brown.name>
+Cc: Ian Kent <raven@themaw.net>, Chuck Lever <cel@kernel.org>, Jake Edge <jake@lwn.net>, 
+	Ilya Dryomov <idryomov@gmail.com>, Alex Markuze <amarkuze@redhat.com>, 
+	Viacheslav Dubeyko <slava@dubeyko.com>, Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Miklos Szeredi <mszeredi@redhat.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu, 
+	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org
+Content-Type: multipart/mixed; boundary="000000000000eb44720658aff3f2"
+
+--000000000000eb44720658aff3f2
 Content-Type: text/plain; charset="UTF-8"
 
-Hello,
+On Mon, 3 Aug 2026 at 03:37, NeilBrown <neilb@ownmail.net> wrote:
 
-syzbot found the following issue on:
+> When a DCACHE_CURSOR dentry is added to d_children, it is only ever
+> added "before" or "behind" an existing child, so it will never be the
+> first and so never needs to adjust the refcount on the parent.  If it
+> remains on the list until dput() it could be the last child to be
+> removed, in which case normal handling applies in dentry_unlist() (where
+> it has been moved from dentry_kill().
 
-HEAD commit:    0131b508c0e2 Merge tag 'ntfs-for-7.2-rc6' of git://git.ker..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=10daee32580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=145fa60d73086782
-dashboard link: https://syzkaller.appspot.com/bug?extid=2b1c8c58f62458852a54
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+Not handling the parent refcount together with cursor removal can
+result in inconsistency, e.g:
 
-Unfortunately, I don't have any reproducer for this issue yet.
+ - add cursor (seek between two positive dentries)
+ - remove all real children (parent refcount not touched, since cursor
+is still on d_children)
+ - remove cursor (seek to zero offset)
+ - close directory (dentry_unlist() will skip parent refcount update
+since dentry->d_sib is no longer linked)
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/237b6b227f6e/disk-0131b508.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/90a5294c2a5d/vmlinux-0131b508.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/54d17924c110/bzImage-0131b508.xz
+Repro attached, produces "BUG: Dentry ffff888107ef75d0{i=143e,n=dir}
+still in use (1) [unm
+ount of hugetlbfs hugetlbfs]".
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+2b1c8c58f62458852a54@syzkaller.appspotmail.com
+Thanks,
+Milklos
 
-======================================================
-WARNING: possible circular locking dependency detected
-syzkaller #0 Tainted: G             L     
-------------------------------------------------------
-syz.4.2436/14866 is trying to acquire lock:
-ffff8880243be138 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
-ffff8880243be138 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
+--000000000000eb44720658aff3f2
+Content-Type: text/x-csrc; charset="US-ASCII"; name="rmwhilereaddir.c"
+Content-Disposition: attachment; filename="rmwhilereaddir.c"
+Content-Transfer-Encoding: base64
+Content-ID: <f_msn63w320>
+X-Attachment-Id: f_msn63w320
 
-but task is already holding lock:
-ffff888055e70880 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
-
-which lock already depends on the new lock.
-
-
-the existing dependency chain (in reverse order) is:
-
--> #2 (&of->mutex){+.+.}-{4:4}:
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
-       iter_file_splice_write+0x830/0x10b0 fs/splice.c:736
-       do_splice_from fs/splice.c:936 [inline]
-       do_splice+0x109c/0x1f90 fs/splice.c:1349
-       __do_splice+0x33b/0x370 fs/splice.c:1431
-       __do_sys_splice fs/splice.c:1634 [inline]
-       __se_sys_splice fs/splice.c:1616 [inline]
-       __x64_sys_splice+0x187/0x250 fs/splice.c:1616
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
--> #1 (&pipe->mutex){+.+.}-{4:4}:
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       anon_pipe_write+0x25e/0x1d90 fs/pipe.c:553
-       __kernel_write_iter+0x6bb/0x930 fs/read_write.c:621
-       __kernel_write+0xf6/0x140 fs/read_write.c:641
-       autofs_write fs/autofs/waitq.c:57 [inline]
-       autofs_notify_daemon+0x50d/0xd90 fs/autofs/waitq.c:164
-       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
-       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
-       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
-       follow_automount fs/namei.c:1565 [inline]
-       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
-       traverse_mounts fs/namei.c:1647 [inline]
-       handle_mounts fs/namei.c:1749 [inline]
-       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
-       step_into fs/namei.c:2152 [inline]
-       walk_component fs/namei.c:2288 [inline]
-       lookup_last fs/namei.c:2789 [inline]
-       path_lookupat+0x58b/0xc40 fs/namei.c:2813
-       filename_lookup+0x202/0x590 fs/namei.c:2842
-       do_fchownat+0xe6/0x1f0 fs/open.c:800
-       __do_sys_lchown fs/open.c:829 [inline]
-       __se_sys_lchown fs/open.c:827 [inline]
-       __x64_sys_lchown+0x7e/0xc0 fs/open.c:827
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
--> #0 (&sbi->pipe_mutex){+.+.}-{4:4}:
-       check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
-       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
-       validate_chain kernel/locking/lockdep.c:3908 [inline]
-       __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       autofs_write fs/autofs/waitq.c:55 [inline]
-       autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
-       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
-       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
-       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
-       follow_automount fs/namei.c:1565 [inline]
-       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
-       traverse_mounts fs/namei.c:1647 [inline]
-       handle_mounts fs/namei.c:1749 [inline]
-       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
-       step_into fs/namei.c:2152 [inline]
-       walk_component fs/namei.c:2288 [inline]
-       lookup_last fs/namei.c:2789 [inline]
-       path_lookupat+0x58b/0xc40 fs/namei.c:2813
-       filename_lookup+0x202/0x590 fs/namei.c:2842
-       kern_path+0x37/0x50 fs/namei.c:3036
-       lookup_bdev+0xd8/0x280 block/bdev.c:1208
-       resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
-       kobj_attr_store+0x58/0x80 lib/kobject.c:840
-       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
-       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x6ac/0x1050 fs/read_write.c:687
-       ksys_write+0x12a/0x250 fs/read_write.c:739
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-other info that might help us debug this:
-
-Chain exists of:
-  &sbi->pipe_mutex --> &pipe->mutex --> &of->mutex
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(&of->mutex);
-                               lock(&pipe->mutex);
-                               lock(&of->mutex);
-  lock(&sbi->pipe_mutex);
-
- *** DEADLOCK ***
-
-4 locks held by syz.4.2436/14866:
- #0: ffff888057e055f0 (&f->f_pos_lock){+.+.}-{4:4}, at: fdget_pos+0x2aa/0x380 fs/file.c:1259
- #1: ffff88807f95c450 (sb_writers#8){.+.+}-{0:0}, at: ksys_write+0x12a/0x250 fs/read_write.c:739
- #2: ffff888055e70880 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
- #3: ffff88801f287698 (kn->active#70){.+.+}-{0:0}, at: kernfs_get_active_of fs/kernfs/file.c:73 [inline]
- #3: ffff88801f287698 (kn->active#70){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x332/0x5f0 fs/kernfs/file.c:337
-
-stack backtrace:
-CPU: 0 UID: 0 PID: 14866 Comm: syz.4.2436 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/16/2026
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
- print_circular_bug.cold+0x178/0x1c7 kernel/locking/lockdep.c:2043
- check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2175
- check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
- check_prevs_add kernel/locking/lockdep.c:3284 [inline]
- validate_chain kernel/locking/lockdep.c:3908 [inline]
- __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
- lock_acquire kernel/locking/lockdep.c:5868 [inline]
- lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
- __mutex_lock_common kernel/locking/mutex.c:646 [inline]
- __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
- autofs_write fs/autofs/waitq.c:55 [inline]
- autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
- autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
- autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
- autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
- follow_automount fs/namei.c:1565 [inline]
- __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
- traverse_mounts fs/namei.c:1647 [inline]
- handle_mounts fs/namei.c:1749 [inline]
- step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
- step_into fs/namei.c:2152 [inline]
- walk_component fs/namei.c:2288 [inline]
- lookup_last fs/namei.c:2789 [inline]
- path_lookupat+0x58b/0xc40 fs/namei.c:2813
- filename_lookup+0x202/0x590 fs/namei.c:2842
- kern_path+0x37/0x50 fs/namei.c:3036
- lookup_bdev+0xd8/0x280 block/bdev.c:1208
- resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
- kobj_attr_store+0x58/0x80 lib/kobject.c:840
- sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
- kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
- new_sync_write fs/read_write.c:595 [inline]
- vfs_write+0x6ac/0x1050 fs/read_write.c:687
- ksys_write+0x12a/0x250 fs/read_write.c:739
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x115/0x870 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fc8e1d9e019
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fc8e2c6a028 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007fc8e2026360 RCX: 00007fc8e1d9e019
-RDX: 0000000000000012 RSI: 0000200000000040 RDI: 000000000000000c
-RBP: 00007fc8e1e3500c R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007fc8e20263f8 R14: 00007fc8e2026360 R15: 00007ffe9c4403d8
- </TASK>
-PM: Image not found (code -22)
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+I2luY2x1ZGUgPGZjbnRsLmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUgPGRpcmVudC5o
+PgojaW5jbHVkZSA8ZXJyLmg+CiNpbmNsdWRlIDxzeXMvc3RhdC5oPgoKI2RlZmluZSBDSEVDS19F
+UlIoX2V4cHIpIFwKCSh7IHR5cGVvZihfZXhwcikgX3JldCA9IChfZXhwcik7IGlmIChfcmV0ID09
+IC0xKSB7IGVycigxLCAjX2V4cHIpOyB9IF9yZXQ7IH0pCiNkZWZpbmUgQ0hFQ0tfTlVMTChfZXhw
+cikgXAoJKHsgdHlwZW9mKF9leHByKSBfcmV0ID0gKF9leHByKTsgaWYgKF9yZXQgPT0gTlVMTCkg
+eyBlcnJ4KDEsICNfZXhwciAiIHJldHVybmVkIE5VTEwiKTsgfSBfcmV0OyB9KQoKaW50IG1haW4o
+dm9pZCkKewoJaW50IGRmZDsKCURJUiAqZHA7CglzdHJ1Y3QgZGlyZW50ICpkZTsKCglDSEVDS19F
+UlIobWtkaXIoImRpciIsIDA3NzcpKTsKCUNIRUNLX0VSUihta25vZCgiZGlyL2ZvbyIsIDA2NjYs
+IDApKTsKCUNIRUNLX0VSUihta25vZCgiZGlyL2JhciIsIDA2NjYsIDApKTsKCWRmZCA9IENIRUNL
+X0VSUihvcGVuKCJkaXIiLCBPX1JET05MWSkpOwoJZHAgPSBDSEVDS19OVUxMKGZkb3BlbmRpcihk
+ZmQpKTsKCWRvIHsKCQlkZSA9IENIRUNLX05VTEwocmVhZGRpcihkcCkpOwoJfSB3aGlsZSAoZGUt
+PmRfbmFtZVswXSA9PSAnLicpOwoJQ0hFQ0tfRVJSKGxzZWVrKGRmZCwgZGUtPmRfb2ZmLCBTRUVL
+X1NFVCkpOyAvKiBsaW5rcyBjdXJzb3IgYmV0d2VlbiBmb28gYW5kIGJhciAqLwoJQ0hFQ0tfRVJS
+KHVubGluaygiZGlyL2ZvbyIpKTsKCUNIRUNLX0VSUih1bmxpbmsoImRpci9iYXIiKSk7CglDSEVD
+S19FUlIobHNlZWsoZGZkLCAwLCBTRUVLX1NFVCkpOyAvKiByZW1vdmVzIGN1cnNvciAqLwoJQ0hF
+Q0tfRVJSKGNsb3NlZGlyKGRwKSk7CglDSEVDS19FUlIocm1kaXIoImRpciIpKTsKfQo=
+--000000000000eb44720658aff3f2--
