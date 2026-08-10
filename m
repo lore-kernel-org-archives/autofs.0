@@ -1,91 +1,91 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C2C3C37B3
-	for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 11:49:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB2B3E3145
+	for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 14:05:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.182
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786362598; cv=pass; b=UBZRRh07YiFXdgIi2yIxGtE6BMpzzTQjD2s0bTZ0qC5GVZRiyDb7DlcXjMgHflrV1kjdp9iVDA4uxLtzMCiGqTLKv4jPBPQm9cKRrWXMTfgYkfgZlWtRYP5NNUKg7c8VqpM38Dd+OxpSwZzokiXiUUpLyFDM2clm33OdF8Q9KEo=
+	t=1786370714; cv=pass; b=MCN5LKWY9sZm9wADYuYGsds2duxEJpb5+heaxMVUWiMGYkeJf0uFj9B1gbhf0fT5vjc8203DPNZQeRAFIehOoF9xoJRToYBbj510+7S6tpgPUg6LuqDSjOsW+YGP/jg6T51aUEgZIS3odzIx97ybqDy2HasseZM5D/xmfuuLRhw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786362598; c=relaxed/simple;
-	bh=bqxhj80OHCfs2l0pmZXo9T6EE/Q+XSI4ASVci9J8bsI=;
+	s=arc-20240116; t=1786370714; c=relaxed/simple;
+	bh=wQK4iC+iVboZVQ0TbBvuUd5c8pU8uXP8R69wO9Cbm1Q=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YudJwXs3eDRKF9EBCJwAFJiaMpD7PXpwVf66RHbGnMbZcmlHwkEaMeuYU4G9dmjlZR/abs78JjWAbtcymV9YJyFAuKZNY8hZwRvfnGAHivWq7jt/CYf+urrpihzym8jVjwjQUae6Ky2ViaQLsVzW8f2PWQMU9twN5kYeex/xSlo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=JbIlTHjY; arc=pass smtp.client-ip=209.85.222.182
+	 To:Cc:Content-Type; b=D0yDhDbJ0vzHZ5sRrtBmU5LVYSgAkzSq2F9+E/4kt0WgI9/bG4JBEcjknEILWC6nHM15Iq6uMdjuEIqdKcVZkwC/DV7vBVClVsllgnkmHQZYFPCo0Jr3O5hZfEJJ/5geXAlhAI6qBv8ppzljRXnhHh8Z3A6H1ppMw4Jux/w4Viw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=myhmKgHT; arc=pass smtp.client-ip=209.85.160.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="JbIlTHjY"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-930f618435cso95121585a.3
-        for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 04:49:56 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786362595; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="myhmKgHT"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-51c08df8513so11615491cf.3
+        for <autofs@vger.kernel.org>; Mon, 10 Aug 2026 07:05:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786370710; cv=none;
         d=google.com; s=arc-20260327;
-        b=ZP9kRXJy0evqOEVesV3A97oTjp+iIIOCopVeDvdILX4AauQtle9CqFD6X9ZqzVMBGn
-         1dGiorihyMy7Ytm6sSx3dNNhRuGISdYO3HNFlBxAOOwjbk2DMchL2JRwHSP8B7o06sWB
-         Ayo82bxUKlchf0eb9gXdYnGY6vZ06OWJfjJzYgTy/qEJdeVuF7kOEh5kaZHrqiJjtVWx
-         t9cLE/amwz7QKDuCBeHHN492r+Ot3WCo1QsaTyRuLAPhAfo8YKhYc9GOBRq7pcbiuJ+O
-         gP3D5omTDFZryUnUJxex1naXD90nAZTTHSPrso4UsdQCaFRhuTCABdHIatT/Fo0e+rNj
-         22NQ==
+        b=boFsp9DWkJhDMZvzacvtWYusTENA+d+juNMH0I0dw1FyTQJb9O3zPEGLyBXAPtiDe5
+         IBxmgQY2E2r/zU24Y0VBrq7eudK5/jdVLwl3fZoJPsw9yH/ah6Q3qlk0k+AtS8Go1MEo
+         o6Jo5yRrYomPFLJst51G8VS4dXkzhiWrsnfiFlSGr9VezZZoqj4atqPwlLiL+lgosXNK
+         bbdjKZFqS9mKaRltKKC0vfjQkzh5hbZc2coraILIZkSNyi3bnFinvHqXz3JiAI8ZD9U2
+         re6z1YkY6UoPIb0jEYmbECJBGTIf6iMJ3Us6BluICglxZjtbGjv+f7SD7nwAVvPCyBMD
+         9c9g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature;
-        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
-        fh=b7ZkR2Wf5E0h1eWiWX5IG9gVxqLIQubZabFpRQSRrog=;
-        b=o63vMeo/kup727KvcXZkvZCLwPHXIBenuy44W34xH+YYBjBOCcWf/55K/uyfhVK5UJ
-         wQmc4DMEgf40O+9tt+lrcF8pGEnQwV2/oUUvTiWr6QSGzm/2hVthSSrgEOfxVG3JSZGo
-         vEHAX2kZZlY1H2NUyjHS39TWzgkGNALc9tlv6TU8cUjAe+YZz0fcwvvRx0W/Ai4PenLz
-         D0FcpI17SpohqmiUILH731uA5/3lrv0q67Sth56576A3G/jf9RH83bKjz2dCqhHOpVl/
-         GBe+8dlceIxKrSdz0cE5fNlLDAsadxYo89pW3/AWyvg1+MIYavbm/1a5QbrFcY2E3YVA
-         7lUA==;
+        bh=NV+45oOv6d8nxP4iat2b7fdyPFUDUzYrSvuxe5NbF8Q=;
+        fh=OwpwEXJWoM6jhtcN1JtXeGddyt2X8a9GCwLaCKbHjdE=;
+        b=lM+am8IBr60ffgx/bLY/CGrW45xn4cGiuCmBHGCZ9NrN0K+ZuYEp9lUo/s0yy6GCt9
+         LtKiAKJ4/Wy2CNlMTFrc39ckk3ZRNb14iUb/NQTbt7+n1A7sZfP8qQeaYqbRWd4uSI3n
+         VFBIImCYV6SHH4vBCK1RYJFLpX7BPUuUbiKhq4kg3h3FLaxwPyD3fSDQmmtQzpfbmLcg
+         K0nJZyDmLWqfxVHbXLm1wM/l0Reyh22Tg+5SDOYjNqXzOtZ9NGjPzokZi+ivRrcviTw4
+         vOqM5U5RGBh5076RYg3v0/gn70qsBWIWiIM+gNCtTUb5YPBmWLp0VZe3609WZWqxip4c
+         Iatg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1786362595; x=1786967395; darn=vger.kernel.org;
+        d=szeredi.hu; s=google; t=1786370710; x=1786975510; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
-        b=JbIlTHjYRbq+ZIsCxsszUYyLNHxgDCPjN9Ma1WEhKH7MRmWe7joIBbYWWomP9gcZOk
-         LFfIYMBfmj2D+xlKmRu9u/RX7WEdZqwmK+o11C1r04InwcwfFNVdcqh2Sg5WKYqi1/Rt
-         KFQGIwIBoE4APpF/F9Jcwrx5z06thfkeft49Q=
+        bh=NV+45oOv6d8nxP4iat2b7fdyPFUDUzYrSvuxe5NbF8Q=;
+        b=myhmKgHTG1hXWp+ZWdXS/rOTTX/n2t2qUF8gwZnkEQrZniSCmin6lDe/80YepezVa6
+         121u1I/avdUEU9WLXbOvUTKTDZnRMENu9eDMm34cdrmTSuVA63UMoNjjk1PYE/pAvemd
+         YBbtcfpvyQ4CvlD5YmCvZn51m6vllAzMISc9c=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786362595; x=1786967395;
+        d=1e100.net; s=20251104; t=1786370710; x=1786975510;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=MYtVOAa94uBjVa65PDPUOymqzi6A36MmnRIRMhhmNoM=;
-        b=KbdeJX4Bkk/gxKKoY3JM+wrLGYgPRuQZE25ybTy1oD4I256n2AVzgaCuqBTAxDc+YQ
-         JVVAcXNelTLkgV9PyivvCbJMcn6q18bxeOOd2G07mQPOIfTljPrYeOngbfUXN3nymWz3
-         +5FjWP1k27Ns2yege5I+JeP0+fwa/Rj77jgCxHhI8b6DAApaNcvbxiEZxOy8jr5584/K
-         KqKXeBmh8j7xXuLrUdDmssW7KzdYtgqhBeTC6iC+JlCryhzQjLGpIf87GZ+1QQ+VB3cF
-         buk7vIhNpj3OdJsOcSumDnAZIKKnobZzRqj/iJLYQQPPRuG9Ad2jqDmKiQlGmZJsYTcP
-         BCzA==
-X-Forwarded-Encrypted: i=1; AHgh+RrEnAH+IKBC1WKXXNR1o9EIlDh4DhU+Do3fD9BQ/l/0mU1mho6igzweSTu3tzWYOeAE89XhQs4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzOT7mKpfaBcm9dikAOomzJjh5/k8hCUIJAmbwTrUxAfI1Sz11q
-	YYcxJR79BknOrMh5/Une3PLe3c1F0bv85csrCzun2+9s9pCGpttLfZ/XW06/Wo0mZNvlz7VDq6J
-	nYg28+PzhMOA/z7Mq0XcomHdi25bomV/YFYTxu66jFg==
-X-Gm-Gg: AR+sD13y6lAtuf/zoRwdBoWRVNMyLQUZA8dQ3UDAlWdGWmKq+DipROIixWtEIHfoJIp
-	MdAIU4CJ262m6JsY1054R0L7tQKpv3lnC0A9A6FrgCariIetmg2C0JOHJlQcRpq7USfOIjn5P4g
-	J4AYgVDECayaSv+K2ZGeXEGDKc35xlOPxThQiQNKdV3R3GYyny4rSWaPO5zbZjGZf1t/UW41aDZ
-	UhATkd8X5KzIUQwtlGOkdbVTG8JxiqLFuLplEIdz1rcnxJ/7DHVVWqjQfqZIEsdP1qI8MhiwZIi
-	CKPN1sjOPrDkC7/QUsD1X4u5hl4TQbIKhfoQwVhklpBS0FWHXkvrDo3hV438e+qeBaBj2jhs4RM
+        bh=NV+45oOv6d8nxP4iat2b7fdyPFUDUzYrSvuxe5NbF8Q=;
+        b=qIPBIcvmMTLsL3X9P5VkyJg1LhpbvAJsOyLxv4ZnuEHbwHfXDNirVdME45wrhFf7aZ
+         ZFh7i9aTcUHyPlHlHzr4Cv8ZGicF3He6ZDctnEcvv2gHDn5k4GYqI+T8GdUsQIB/1OX+
+         WnhDYKoRpQUKny0BFSwii8430CnknHUzUQU8Y4MxMJm3tL41sBxKi94AhFlD1OeXEWMD
+         D8EHbHbHel9P9Yq39/No5AZjkl/qQXBSiNyxVWpcgeppCWXIo+wCWfYFd0llwmahHbHO
+         xiOr8id/oGP++WUqBg1fhpkkXf2GJI4et3kvaa7bbYIX8s74Ha6e42vQmg5rj69FfEDA
+         X8IQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqSaOO19I0XPhIRUyd8t2VlDm1NR6ojn1CX7ElqokSK+mNHv77XHsrAwnumsnZzXl9kIf13my0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxOC0rAVfxETFJSxc4MuO5WzVnyCWOcvzwqHB8IBXHnmkqKnZMR
+	UOho2pBfvEgRafXNnez4/SX0s/Z4Gc1cPkfn6pVQKFs8F/02WA6IWM2lREPZ4GF3X8Mjnbg2M5I
+	ggxDXQbUDioc/iGDp97g7O23mEAG5JSthbRs3FJjLuw==
+X-Gm-Gg: AR+sD11Z6YQC0aA5j7+6sAYuo5Gb/vLXljEHcYcRYVveTUQH9k4y4GEYw5UAGm00BjS
+	xgyrjPxQil3ElH65IO9iq+zE8tLDHntDQGXmxHaP80ABaJX67KLFTm1O9GCRw2XUa3BeU8X7P4v
+	rNqWGsG9wQhjM39DB9l5m2i4QNKnQy4luxlS7/o4JXbbCUGRdSqJdN/CYGM8jJnPXwUsXlz0PJL
+	VbJmBm8zrzr8g/Zwo6vg+Ok7QhZvWKMuitulao/JREyoIudFeeFhDe6V/Cw+uV6I/t/aeZnlkFF
+	1Ri5RhVKkAF8QacRWwrX9BbkFaezkdCdBFbLLL4h0CXS6dfQmVDQdVtNPEzJ7ntTIeUq0gDr2y0
 	=
-X-Received: by 2002:a05:620a:818d:b0:914:bf8a:ba81 with SMTP id
- af79cd13be357-9369d1ba3femr59440385a.27.1786362595054; Mon, 10 Aug 2026
- 04:49:55 -0700 (PDT)
+X-Received: by 2002:ac8:5cc5:0:b0:51c:207f:6524 with SMTP id
+ d75a77b69052e-52d1919e59dmr254953691cf.37.1786370709751; Mon, 10 Aug 2026
+ 07:05:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260803012648.2195405-1-neilb@ownmail.net> <20260803012648.2195405-2-neilb@ownmail.net>
-In-Reply-To: <20260803012648.2195405-2-neilb@ownmail.net>
+References: <20260803012648.2195405-1-neilb@ownmail.net> <20260803012648.2195405-3-neilb@ownmail.net>
+In-Reply-To: <20260803012648.2195405-3-neilb@ownmail.net>
 From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 10 Aug 2026 13:49:42 +0200
-X-Gm-Features: AUfX_mzmgezsTeEsc_HIV9oG5qNwHpchZPEJUwGx53Ztx5haBzb4JhKil_bknQc
-Message-ID: <CAJfpegt1wHngLs9uR943gT6zxV67D53k3n4GiFKowsAb3C6LJw@mail.gmail.com>
-Subject: Re: [PATCH v1 01/12] VFS: don't count references through ->d_parent
+Date: Mon, 10 Aug 2026 16:04:56 +0200
+X-Gm-Features: AUfX_mwOr6H9OqGZCernhbLrr_tuorcVZn-K7EOk-lg62vULXKmdHLNqnvpAUNY
+Message-ID: <CAJfpegvTXG_kJHyFB115zdQvbyvDNtfqA_Mv9UKiEf9BE5qXwQ@mail.gmail.com>
+Subject: Re: [PATCH v1 02/12] Add and use d_for_each_positive_child family of iterators
 To: NeilBrown <neil@brown.name>
 Cc: Ian Kent <raven@themaw.net>, Chuck Lever <cel@kernel.org>, Jake Edge <jake@lwn.net>, 
 	Ilya Dryomov <idryomov@gmail.com>, Alex Markuze <amarkuze@redhat.com>, 
@@ -96,58 +96,64 @@ Cc: Ian Kent <raven@themaw.net>, Chuck Lever <cel@kernel.org>, Jake Edge <jake@l
 	Miklos Szeredi <mszeredi@redhat.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu, 
 	linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org
-Content-Type: multipart/mixed; boundary="000000000000eb44720658aff3f2"
-
---000000000000eb44720658aff3f2
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 3 Aug 2026 at 03:37, NeilBrown <neilb@ownmail.net> wrote:
+On Mon, 3 Aug 2026 at 03:38, NeilBrown <neilb@ownmail.net> wrote:
 
-> When a DCACHE_CURSOR dentry is added to d_children, it is only ever
-> added "before" or "behind" an existing child, so it will never be the
-> first and so never needs to adjust the refcount on the parent.  If it
-> remains on the list until dput() it could be the last child to be
-> removed, in which case normal handling applies in dentry_unlist() (where
-> it has been moved from dentry_kill().
+> coda_flag_children() doesn't need rcu_read_lock() as holding any
+> spinlock prevents an RCU critical section from finishing.
 
-Not handling the parent refcount together with cursor removal can
-result in inconsistency, e.g:
+I think prep changes should go in separate patches.
 
- - add cursor (seek between two positive dentries)
- - remove all real children (parent refcount not touched, since cursor
-is still on d_children)
- - remove cursor (seek to zero offset)
- - close directory (dentry_unlist() will skip parent refcount update
-since dentry->d_sib is no longer linked)
+The conversion should be an equivalent transformation.
 
-Repro attached, produces "BUG: Dentry ffff888107ef75d0{i=143e,n=dir}
-still in use (1) [unm
-ount of hugetlbfs hugetlbfs]".
+> nfs_clear_verifier_directory() is changed slightly so the parent lock is
+> dropped and retaken between clearing the verifier on the parent and on
+> all the children.  I think this is safe.
+
+This can also be a prep patch.
+
+> get_next_postive_dentry() in autofs now holds the parent lock a bit
+> less.  The only non-trivial code that is no locked any more is
+>    parent = p->d_parent
+> This cannot need the lock as autofs doesn't support rename and
+> a ref is held on a descendent of parent, so ->d_parent cannot
+> change.  And if it could, the lock wouldn't help.
+
+And this too.
+
+> diff --git a/fs/autofs/expire.c b/fs/autofs/expire.c
+> index 5c2d459e1e48..7b0a22629415 100644
+> --- a/fs/autofs/expire.c
+> +++ b/fs/autofs/expire.c
+> @@ -70,12 +70,9 @@ static int autofs_mount_busy(struct vfsmount *mnt,
+>         return status;
+>  }
+>
+> -/* p->d_lock held */
+>  static struct dentry *positive_after(struct dentry *p, struct dentry *child)
+
+Move this primitive to libfs.c?
+
+> --- a/fs/ceph/mds_client.c
+> +++ b/fs/ceph/mds_client.c
+> @@ -2182,14 +2182,10 @@ static bool drop_negative_children(struct dentry *dentry)
+>         if (!d_is_dir(dentry))
+>                 goto out;
+>
+> -       spin_lock(&dentry->d_lock);
+> -       hlist_for_each_entry(child, &dentry->d_children, d_sib) {
+> -               if (d_really_is_positive(child)) {
+> -                       all_negative = false;
+> -                       break;
+> -               }
+> +       d_for_each_positive_child(child, dentry) {
+> +               all_negative = false;
+> +               break;
+>         }
+> -       spin_unlock(&dentry->d_lock);
+
+simple_empty()?
 
 Thanks,
-Milklos
-
---000000000000eb44720658aff3f2
-Content-Type: text/x-csrc; charset="US-ASCII"; name="rmwhilereaddir.c"
-Content-Disposition: attachment; filename="rmwhilereaddir.c"
-Content-Transfer-Encoding: base64
-Content-ID: <f_msn63w320>
-X-Attachment-Id: f_msn63w320
-
-I2luY2x1ZGUgPGZjbnRsLmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUgPGRpcmVudC5o
-PgojaW5jbHVkZSA8ZXJyLmg+CiNpbmNsdWRlIDxzeXMvc3RhdC5oPgoKI2RlZmluZSBDSEVDS19F
-UlIoX2V4cHIpIFwKCSh7IHR5cGVvZihfZXhwcikgX3JldCA9IChfZXhwcik7IGlmIChfcmV0ID09
-IC0xKSB7IGVycigxLCAjX2V4cHIpOyB9IF9yZXQ7IH0pCiNkZWZpbmUgQ0hFQ0tfTlVMTChfZXhw
-cikgXAoJKHsgdHlwZW9mKF9leHByKSBfcmV0ID0gKF9leHByKTsgaWYgKF9yZXQgPT0gTlVMTCkg
-eyBlcnJ4KDEsICNfZXhwciAiIHJldHVybmVkIE5VTEwiKTsgfSBfcmV0OyB9KQoKaW50IG1haW4o
-dm9pZCkKewoJaW50IGRmZDsKCURJUiAqZHA7CglzdHJ1Y3QgZGlyZW50ICpkZTsKCglDSEVDS19F
-UlIobWtkaXIoImRpciIsIDA3NzcpKTsKCUNIRUNLX0VSUihta25vZCgiZGlyL2ZvbyIsIDA2NjYs
-IDApKTsKCUNIRUNLX0VSUihta25vZCgiZGlyL2JhciIsIDA2NjYsIDApKTsKCWRmZCA9IENIRUNL
-X0VSUihvcGVuKCJkaXIiLCBPX1JET05MWSkpOwoJZHAgPSBDSEVDS19OVUxMKGZkb3BlbmRpcihk
-ZmQpKTsKCWRvIHsKCQlkZSA9IENIRUNLX05VTEwocmVhZGRpcihkcCkpOwoJfSB3aGlsZSAoZGUt
-PmRfbmFtZVswXSA9PSAnLicpOwoJQ0hFQ0tfRVJSKGxzZWVrKGRmZCwgZGUtPmRfb2ZmLCBTRUVL
-X1NFVCkpOyAvKiBsaW5rcyBjdXJzb3IgYmV0d2VlbiBmb28gYW5kIGJhciAqLwoJQ0hFQ0tfRVJS
-KHVubGluaygiZGlyL2ZvbyIpKTsKCUNIRUNLX0VSUih1bmxpbmsoImRpci9iYXIiKSk7CglDSEVD
-S19FUlIobHNlZWsoZGZkLCAwLCBTRUVLX1NFVCkpOyAvKiByZW1vdmVzIGN1cnNvciAqLwoJQ0hF
-Q0tfRVJSKGNsb3NlZGlyKGRwKSk7CglDSEVDS19FUlIocm1kaXIoImRpciIpKTsKfQo=
---000000000000eb44720658aff3f2--
+Miklos
