@@ -1,288 +1,189 @@
-Received: from mail-oo1-f77.google.com (mail-oo1-f77.google.com [209.85.161.77])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-a3-smtp.messagingengine.com (flow-a3-smtp.messagingengine.com [103.168.172.138])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 174834B04A0
-	for <autofs@vger.kernel.org>; Sat, 15 Aug 2026 00:11:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F6319DF55;
+	Sat, 15 Aug 2026 00:28:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.138
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786752698; cv=none; b=GH3xt6+JZijKDfS2b1S9jS10K0K3qAxdatrtmztupUR2AShS8ulh+MYe7/tSCU9Tdacv5yFtyW4oO05eKWexWCd0ekpJgIVJAejSCSrLfjjoLwcuNdBjaUlfVhVvZ+5lvV12iXaNnNatYZewwLRCuqzfLOd106k8PJ4Vz1qh52s=
+	t=1786753736; cv=none; b=nvPhZnMqx39oJnvzi4VmWgSKtb1c1fq9m/4Otr9bsZlcVg2dRxav44kkwbPeIyaaqz8JP4DGRLDLGYvubs5koIZMelYIqWhsth3BvvfqFWU5d8qSTOWt8OfzF+kvbt4y8pkpyflFrrr82NOWEDQlWR6RxcWE3oKSc+xaWXHfkk4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786752698; c=relaxed/simple;
-	bh=Rg0QWmt9FGxH0sq59MVWlgDGyp2/YseKWgNvxL1j5EY=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=KFq4OfZ/wOgpd551x3zmp5QUVYoTYlp0WmKcSgDhDI/oBh7rhzPf8pUReZXgR8a0VoKXGM07vEjRwTQc3ALDbCceTM/lDdKFz2lo5JLeKPN6JzVf+sTkaVmoGy1BZ8ZD86ugXOJ2akKsblRlceE/WINf98/fqYVLC9MFwcuI184=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.77
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f77.google.com with SMTP id 006d021491bc7-6aae6f87ed7so1530283eaf.0
-        for <autofs@vger.kernel.org>; Fri, 14 Aug 2026 17:11:36 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786752696; x=1787357496;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=0pfHBZkP+bol7AU9NvnslyqRVXphOe4m7EmVJ4GVGq0=;
-        b=hzdZ4dYmOE+I2xeOFk4YBaXbfdGIzjrO9ELUSv69yRouePQaUNDIPLJRF5Owa938SO
-         KhfBjOPB3DPAT4Wp3bWnz7FS52rR232MeDLuXgDo9Ze6sjW69ypV5AM9pVAQjkA6fAUW
-         pT+rk7XRlC8hdJn8a8NtLtCabO5VESA4RW7PGim3UHlffm8XygT+aHqS3lCSCQSeQ9Eg
-         2rVTGmriUFG8P9Vy4wI1hP0EDkfL/rVR6SH62D6T2sNeJiDaGrpP1zW/l3kqp4LhV1Zx
-         dp2uckfH8VvxqymmjO6la0tNAhg4FMjdOkCJ9CL5nI0Mmf0/6DOUBuyLQiTGDGWY5bKS
-         QHhg==
-X-Gm-Message-State: AOJu0YyMi2+bmWH4/pGOMKphoRorK4HgykoTPqBvk2AGpKkdrxC2iO47
-	ijHE/Cy2ZrijuO/vg5E1mAHfWuTrLP0/p8f8bbaMPPMXLefGD3dl6xGKT2ujRIQ3lb2SN8uZtAh
-	G3JLStPr+ntLnaB/03cHx83GM2otno2M127pD5HPHdXaPSfCiA0QBcFMoerk6gw==
+	s=arc-20240116; t=1786753736; c=relaxed/simple;
+	bh=g7nh7dsEZ1pjHvCiqIb3hdYLn0K81/1DIip0VhIf2gw=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
+	 References:Date:Message-id; b=ZvmCJqVuOJeCeF/vZA4Bc5baXati+F6HVDoNn6CcHt2CTEIgRNnnWMJ8PWq/VqG9/1LEjRrEe4rFLnk7SDU/06GTExSdHuKLO294PNI9gHUtbMuSPVjjWdwYGMdYNyR6R/x5h7DiF4j6DK2o7YwGxopSnnuleaHKtRjkoKdqNc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=nSdn1EKL; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=HGIMHqle; arc=none smtp.client-ip=103.168.172.138
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="nSdn1EKL";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="HGIMHqle"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailflow.phl.internal (Postfix) with ESMTP id 082A613802D3;
+	Fri, 14 Aug 2026 20:28:53 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Fri, 14 Aug 2026 20:28:53 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
+	1786753733; x=1786760933; bh=o1aQLt2LpUGrKjGYOvTLlFvcRJJ/81F/gPY
+	p8FQi+3k=; b=nSdn1EKLriHb/2RhjTK0cVnbZ8IPk5rQcDeD8azatLHjlfr69xT
+	sT8lcvsByuamdXOvg2BGtbXVhXrMuRFNtBIwWVgmd4cfVoTd4zirM1bs7F30ZXio
+	AxRLJK5tMfRWgtUCkIyfUaPv9Twnq25W5/PK5v2TY5GdxZsdETK937XWlSrREFSz
+	ZkDwXiTfVfX2Klwo8+xTOcGYNCtNGm9n6maaFnqa7qMngoEaoSlXWflFFKCSoBe5
+	Eqp6WLfQzODbkolKOCA/9kcztSbIqwbb9yndmvOYTFjC7eyCfUEvUDrAobeT0YUv
+	rp0LRtFbgAqZobYbt2kiWyvrRrGNh5QGauQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1786753733; x=
+	1786760933; bh=o1aQLt2LpUGrKjGYOvTLlFvcRJJ/81F/gPYp8FQi+3k=; b=H
+	GIMHqleYRAtYTzuNLHIW0VOhVR6exRSL7nZ5T5Dsz0cz6aOpHWsGICyl+pE3NR82
+	mco5ZnChpP8n+3LJf6/qgsplhBlic6kUvy/Zaj+ez0SDX4A0iIkOypwW+VgHGYvm
+	18iEVvspYmiC+YipF5gfBW+oaYwJ7HG3IiSJ/PfjfnckWpn+fEORTE0lIcTEv4Qs
+	3bdFzfAS4Hf0cvclf+FNTKMbnlgSYP7FkQjn5O/kSpM7CgrAQnUm2cyE5Rg09uyu
+	mjXGMd0kmzYCkJdl48Y0I5n1gkySyOAdSVII+Qq5qOD/dLgS4tSbRkkamGTSUfCO
+	vxOilKqKj0KjdiHcl7gDw==
+X-ME-Sender: <xms:w7J_ajsw_D4dIBSOuzcQo2vIV-l0PSNzPLLcLTsvnO-jNoJLh7hRHw>
+    <xme:w7J_amImdpjuHUPBRSOu2I3DiZ6OniA38JL7-r01735HNYLbk1iNdq7miXpg3pc1d
+    389oLC4p6psQQP09vx7NgqVCvWsvJxcpE3dX-zyICYTLDBQ>
+X-ME-Received: <xmr:w7J_aqMUIWzv8WujNwOgoY2jXshZ3oO24yqckHdHXdgTekXMRHGTPMIUPa3lB9oJdZelDVj9Mf4z-AnfxcZDP70iamDB0kE>
+X-ME-Proxy-Cause: dmFkZTGhRd+yp9NPun85awSEtfR1b0DaxVZ8t32qHaq72VOb+fKnQFTMpUjPKMl4oJ2dKy
+    gOjLZhbW40/d4Ulw989zBT19O3J56mT9sS5rxsWCiVTu8vRmTtWa2gwOxUu1coWL+kTsR7
+    zmF2Zwe8MZREiTR8u9Z6GHWp4ZVFB3oCWHEJwmE4AiUxVslFtexvzkQPYTNMBTOvixMRl7
+    ue9FrMhh+etRV4Q7GPmTxD6DxMmiIx05X6A8pvkrhWhpC72ojp0oZFmvkiTJo0YxlCrro+
+    pBmQzdu/NZkZsXqD0LSR3ezEgtdjawbAV6VACqf0UJlWIwTN1pZCdMHFEk1Ba5Wr/xoil5
+    m1ar3vXpRZiJADwZajrw72r3Yi5ZCzTqB7k41pfnjSsbzNYpwCgjpXbOdd4WWwcCTT6o8W
+    ckRtMXwxQkh/MABiNiJsZX0sPw+VI+Gu5u5eK3SgsQruwdV4O76AH74wjb5LS4M0UbB7uz
+    Yz/qOr55Gs9lBDTSyzfNPrw8WtWbkSaU7GkBesK5cMj+Ann5hn3m+a865CJHQ3aShv+zVQ
+    SoCyPbBmuJ5qcdP9a8T9exmbFYSAIkrrt//AWzz5nGeAOJoXNXZGoUHuUlGKOAGKHb+D8L
+    yvQ+67sZMYi+TmzVSaRGL4XEmltVRmq8SV3JJlLzwwfH65tiHhbT6fN/dtCg
+X-ME-Proxy: <xmx:w7J_aiAxU3yZcbvrk8wJkNME9XsrJoCBIhIovLvZmpIBD5p2p1V0mQ>
+    <xmx:w7J_aqUHe7vV58t_zchUPDraJXzCnvao8pQ0b5pYZcZc5fwOCtPvIg>
+    <xmx:w7J_amf-Pp8IZHxZhr00evSaKWknmXyDWl812zsr2QSqrXFQHkLSLA>
+    <xmx:w7J_arviLpY4ox76MBoGRvR8A0KiaJEUV6R6080rf-p8mlgAQldpwQ>
+    <xmx:xbJ_aoKkBl9MZquIyCaQj_jCvcp2KbVnRX6HidmH9i4ZggtUaLYvnJ_J>
+Feedback-ID: i9d664b8f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 14 Aug 2026 20:28:45 -0400 (EDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:813:b0:6b0:4fbc:aecf with SMTP id
- 006d021491bc7-6b0d68b2455mr7133755eaf.24.1786752695855; Fri, 14 Aug 2026
- 17:11:35 -0700 (PDT)
-Date: Fri, 14 Aug 2026 17:11:35 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a7faeb7.432fbecc.3db7aa.015d.GAE@google.com>
-Subject: [syzbot] [autofs?] possible deadlock in anon_pipe_write (3)
-From: syzbot <syzbot+c36cbd4737e4508de101@syzkaller.appspotmail.com>
-To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+From: NeilBrown <neilb@ownmail.net>
+To: "Miklos Szeredi" <miklos@szeredi.hu>
+Cc: "Ian Kent" <raven@themaw.net>, "Chuck Lever" <cel@kernel.org>,
+ "Jake Edge" <jake@lwn.net>, "Ilya Dryomov" <idryomov@gmail.com>,
+ "Alex Markuze" <amarkuze@redhat.com>,
+ "Viacheslav Dubeyko" <slava@dubeyko.com>, "Jan Harkes" <jaharkes@cs.cmu.edu>,
+ coda@cs.cmu.edu, "Alexander Viro" <viro@zeniv.linux.org.uk>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+ "Trond Myklebust" <trondmy@kernel.org>, "Anna Schumaker" <anna@kernel.org>,
+ "Amir Goldstein" <amir73il@gmail.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Miklos Szeredi" <mszeredi@redhat.com>, autofs@vger.kernel.org,
+ linux-kernel@vger.kernel.org, ceph-devel@vger.kernel.org,
+ codalist@coda.cs.cmu.edu, linux-fsdevel@vger.kernel.org,
+ linux-nfs@vger.kernel.org
+Subject: Re: [PATCH v1 03/12] fsnotify: don't hold a spin_lock across
+ fsnotify_recalc_mask() calls.
+In-reply-to: <178642552869.2852630.11443303758249822243@noble.neil.brown.name>
+References: <20260803012648.2195405-1-neilb@ownmail.net>
+  <20260803012648.2195405-4-neilb@ownmail.net>
+  <CAJfpegs-k3skRGiwZvQLzD7OrAK4KL8zwmpmJKyjRHSQ-rqX+Q@mail.gmail.com>
+  <178642552869.2852630.11443303758249822243@noble.neil.brown.name>
+Date: Sat, 15 Aug 2026 10:28:41 +1000
+Message-id: <178675372176.2852630.1305553887009521382@noble.neil.brown.name>
+Reply-To: NeilBrown <neil@brown.name>
 
-Hello,
+On Tue, 11 Aug 2026, NeilBrown wrote:
+> On Tue, 11 Aug 2026, Miklos Szeredi wrote:
+> > On Mon, 3 Aug 2026 at 03:39, NeilBrown <neilb@ownmail.net> wrote:
+> >=20
+> > > @@ -116,11 +117,15 @@ static int dnotify_handle_event(struct fsnotify_m=
+ark *inode_mark, u32 mask,
+> > >                 else {
+> > >                         *prev =3D dn->dn_next;
+> > >                         kmem_cache_free(dnotify_struct_cache, dn);
+> > > -                       dnotify_recalc_inode_mask(inode_mark);
+> > > +                       need_recalc =3D true;
+> > >                 }
+> > >         }
+> > >
+> > > +       if (need_recalc)
+> > > +               need_recalc =3D dnotify_recalc_inode_mask(inode_mark);
+> > >         spin_unlock(&inode_mark->lock);
+> > > +       if (need_recalc)
+> > > +               fsnotify_recalc_mask(inode_mark->connector);
+> >=20
+> > Is the fsnotify_group_lock() held in this case?   I don't see it.
+>=20
+> It isn't held.  Doesn't it need to be...
+> It seems to protect marks, so maybe it does.
+>=20
+> srcu seems to be used to protect this section, so maybe we can rely on
+> that.
 
-syzbot found the following issue on:
+I dug into this some more, and we do rely on srcu, but don't need the
+extra code below.
+inode_mark->lock doesn't protect inode_mark->connector, so moving the
+dereference out of the lock has no effect.
+srcu_read_lock is taken before we get the ref to the mark, so the mark
+and the connector cannot disappear underneath us.
+A race could result in inode_mark->connector reading as NULL, but
+fsnotify_recalc_mask() checks for NULL, so there is no risk for harm.
 
-HEAD commit:    d58772d8520c Merge tag 'regmap-fix-v7.2-rc7' of git://git...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=106812c6580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8a233ed2ce9a8096
-dashboard link: https://syzkaller.appspot.com/bug?extid=c36cbd4737e4508de101
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-userspace arch: i386
+Thanks for encouraging me to dig into this.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+NeilBrown
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-d58772d8.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/a4e864f7b043/vmlinux-d58772d8.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/f485f29307dc/bzImage-d58772d8.xz
+> Maybe:
+>=20
+> diff --git a/fs/notify/dnotify/dnotify.c b/fs/notify/dnotify/dnotify.c
+> index 7553fe0d7850..ba746284bded 100644
+> --- a/fs/notify/dnotify/dnotify.c
+> +++ b/fs/notify/dnotify/dnotify.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/slab.h>
+>  #include <linux/fsnotify_backend.h>
+> +#include "../fsnotify.h"
+> =20
+>  static int dir_notify_enable __read_mostly =3D 1;
+>  #ifdef CONFIG_SYSCTL
+> @@ -94,6 +95,7 @@ static int dnotify_handle_event(struct fsnotify_mark *ino=
+de_mark, u32 mask,
+>  	struct dnotify_struct *dn;
+>  	struct dnotify_struct **prev;
+>  	struct fown_struct *fown;
+> +	struct fsnotify_mark_connector *conn;
+>  	bool need_recalc =3D false;
+>  	__u32 test_mask =3D mask & ~FS_EVENT_ON_CHILD;
+> =20
+> @@ -123,9 +125,10 @@ static int dnotify_handle_event(struct fsnotify_mark *=
+inode_mark, u32 mask,
+> =20
+>  	if (need_recalc)
+>  		need_recalc =3D dnotify_recalc_inode_mask(inode_mark);
+> +	conn =3D srcu_dereference(inode_mark->connector, &fsnotify_mark_srcu);
+>  	spin_unlock(&inode_mark->lock);
+>  	if (need_recalc)
+> -		fsnotify_recalc_mask(inode_mark->connector);
+> +		fsnotify_recalc_mask(conn);
+> =20
+>  	return 0;
+>  }
+>=20
+> Does that make sense?
+>=20
+> Thanks,
+> NeilBrown
+>=20
+>=20
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+c36cbd4737e4508de101@syzkaller.appspotmail.com
-
-======================================================
-WARNING: possible circular locking dependency detected
-syzkaller #0 Tainted: G             L     
-------------------------------------------------------
-syz.0.717/10076 is trying to acquire lock:
-ffff8880517dd860 (&pipe->mutex){+.+.}-{4:4}, at: anon_pipe_write+0x25e/0x1d90 fs/pipe.c:553
-
-but task is already holding lock:
-ffff88802aeb3938 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
-ffff88802aeb3938 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
-
-which lock already depends on the new lock.
-
-
-the existing dependency chain (in reverse order) is:
-
--> #2 (&sbi->pipe_mutex){+.+.}-{4:4}:
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       autofs_write fs/autofs/waitq.c:55 [inline]
-       autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
-       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
-       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
-       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
-       follow_automount fs/namei.c:1565 [inline]
-       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
-       traverse_mounts fs/namei.c:1647 [inline]
-       handle_mounts fs/namei.c:1749 [inline]
-       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
-       step_into fs/namei.c:2152 [inline]
-       walk_component fs/namei.c:2288 [inline]
-       lookup_last fs/namei.c:2789 [inline]
-       path_lookupat+0x58b/0xc40 fs/namei.c:2813
-       filename_lookup+0x202/0x590 fs/namei.c:2842
-       kern_path+0x37/0x50 fs/namei.c:3036
-       lookup_bdev+0xd8/0x280 block/bdev.c:1208
-       resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
-       kobj_attr_store+0x58/0x80 lib/kobject.c:840
-       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
-       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x6ac/0x1050 fs/read_write.c:687
-       ksys_write+0x12a/0x250 fs/read_write.c:739
-       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
-       __do_fast_syscall_32+0xe7/0x970 arch/x86/entry/syscall_32.c:307
-       do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:332
-       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-
--> #1 (&of->mutex){+.+.}-{4:4}:
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
-       iter_file_splice_write+0x830/0x10b0 fs/splice.c:736
-       do_splice_from fs/splice.c:936 [inline]
-       do_splice+0x109c/0x1f90 fs/splice.c:1349
-       __do_splice+0x33b/0x370 fs/splice.c:1431
-       __do_sys_splice fs/splice.c:1634 [inline]
-       __se_sys_splice fs/splice.c:1616 [inline]
-       __ia32_sys_splice+0x189/0x250 fs/splice.c:1616
-       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
-       __do_fast_syscall_32+0xe7/0x970 arch/x86/entry/syscall_32.c:307
-       do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:332
-       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-
--> #0 (&pipe->mutex){+.+.}-{4:4}:
-       check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
-       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
-       validate_chain kernel/locking/lockdep.c:3908 [inline]
-       __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
-       __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
-       anon_pipe_write+0x25e/0x1d90 fs/pipe.c:553
-       __kernel_write_iter+0x6bb/0x930 fs/read_write.c:621
-       __kernel_write+0xf6/0x140 fs/read_write.c:641
-       autofs_write fs/autofs/waitq.c:57 [inline]
-       autofs_notify_daemon+0x50d/0xd90 fs/autofs/waitq.c:164
-       autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
-       autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
-       autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
-       follow_automount fs/namei.c:1565 [inline]
-       __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
-       traverse_mounts fs/namei.c:1647 [inline]
-       handle_mounts fs/namei.c:1749 [inline]
-       step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
-       step_into fs/namei.c:2152 [inline]
-       walk_component fs/namei.c:2288 [inline]
-       lookup_last fs/namei.c:2789 [inline]
-       path_lookupat+0x58b/0xc40 fs/namei.c:2813
-       filename_lookup+0x202/0x590 fs/namei.c:2842
-       kern_path+0x37/0x50 fs/namei.c:3036
-       lookup_bdev+0xd8/0x280 block/bdev.c:1208
-       resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
-       kobj_attr_store+0x58/0x80 lib/kobject.c:840
-       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
-       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x6ac/0x1050 fs/read_write.c:687
-       ksys_write+0x12a/0x250 fs/read_write.c:739
-       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
-       __do_fast_syscall_32+0xe7/0x970 arch/x86/entry/syscall_32.c:307
-       do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:332
-       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-
-other info that might help us debug this:
-
-Chain exists of:
-  &pipe->mutex --> &of->mutex --> &sbi->pipe_mutex
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(&sbi->pipe_mutex);
-                               lock(&of->mutex);
-                               lock(&sbi->pipe_mutex);
-  lock(&pipe->mutex);
-
- *** DEADLOCK ***
-
-5 locks held by syz.0.717/10076:
- #0: ffff8880275d35f0 (&f->f_pos_lock){+.+.}-{4:4}, at: fdget_pos+0x2aa/0x380 fs/file.c:1259
- #1: ffff88802ac8e450 (sb_writers#7){.+.+}-{0:0}, at: ksys_write+0x12a/0x250 fs/read_write.c:739
- #2: ffff8880721bcc80 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
- #3: ffff88801d35e5a8 (kn->active#85){.+.+}-{0:0}, at: kernfs_get_active_of fs/kernfs/file.c:73 [inline]
- #3: ffff88801d35e5a8 (kn->active#85){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x332/0x5f0 fs/kernfs/file.c:337
- #4: ffff88802aeb3938 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
- #4: ffff88802aeb3938 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4f8/0xd90 fs/autofs/waitq.c:164
-
-stack backtrace:
-CPU: 2 UID: 0 PID: 10076 Comm: syz.0.717 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
- print_circular_bug.cold+0x178/0x1c7 kernel/locking/lockdep.c:2043
- check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2175
- check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3165
- check_prevs_add kernel/locking/lockdep.c:3284 [inline]
- validate_chain kernel/locking/lockdep.c:3908 [inline]
- __lock_acquire+0x136c/0x1a40 kernel/locking/lockdep.c:5237
- lock_acquire kernel/locking/lockdep.c:5868 [inline]
- lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5825
- __mutex_lock_common kernel/locking/mutex.c:646 [inline]
- __mutex_lock+0x1a4/0x1bd0 kernel/locking/mutex.c:821
- anon_pipe_write+0x25e/0x1d90 fs/pipe.c:553
- __kernel_write_iter+0x6bb/0x930 fs/read_write.c:621
- __kernel_write+0xf6/0x140 fs/read_write.c:641
- autofs_write fs/autofs/waitq.c:57 [inline]
- autofs_notify_daemon+0x50d/0xd90 fs/autofs/waitq.c:164
- autofs_wait+0x10fd/0x1b50 fs/autofs/waitq.c:426
- autofs_mount_wait+0x132/0x3b0 fs/autofs/root.c:256
- autofs_d_automount+0x490/0x950 fs/autofs/root.c:410
- follow_automount fs/namei.c:1565 [inline]
- __traverse_mounts+0x1b9/0x8a0 fs/namei.c:1618
- traverse_mounts fs/namei.c:1647 [inline]
- handle_mounts fs/namei.c:1749 [inline]
- step_into_slowpath+0xb7e/0xf90 fs/namei.c:2104
- step_into fs/namei.c:2152 [inline]
- walk_component fs/namei.c:2288 [inline]
- lookup_last fs/namei.c:2789 [inline]
- path_lookupat+0x58b/0xc40 fs/namei.c:2813
- filename_lookup+0x202/0x590 fs/namei.c:2842
- kern_path+0x37/0x50 fs/namei.c:3036
- lookup_bdev+0xd8/0x280 block/bdev.c:1208
- resume_store+0x1d6/0x460 kernel/power/hibernate.c:1278
- kobj_attr_store+0x58/0x80 lib/kobject.c:840
- sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
- kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
- new_sync_write fs/read_write.c:595 [inline]
- vfs_write+0x6ac/0x1050 fs/read_write.c:687
- ksys_write+0x12a/0x250 fs/read_write.c:739
- do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
- __do_fast_syscall_32+0xe7/0x970 arch/x86/entry/syscall_32.c:307
- do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:332
- entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-RIP: 0023:0xf706efec
-Code: Unable to access opcode bytes at 0xf706efc2.
-RSP: 002b:00000000f543c50c EFLAGS: 00000292 ORIG_RAX: 0000000000000004
-RAX: ffffffffffffffda RBX: 000000000000000c RCX: 0000000080000040
-RDX: 0000000000000012 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
-PM: Image not found (code -6)
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
