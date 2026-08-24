@@ -1,147 +1,126 @@
-Received: from flow-b7-smtp.messagingengine.com (flow-b7-smtp.messagingengine.com [202.12.124.142])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 918792F9D85;
-	Sun, 23 Aug 2026 01:21:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B9E37AA78;
+	Mon, 24 Aug 2026 17:49:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787448098; cv=none; b=LEhgxjZmRY2hOu+z2/9aih1TT5czDv2tNwFv6HXU4EnHOntvoET9XczA8ir/+vgTmG1ar0xhTS0Y6W7tnWtBKjtpmDrDMIW7YY8sOLAGh1uJKpbjf5NqObMnQq/2JaRZ92NpQL7c5IJWXDoPU/A/eIR9rUQKA8hiD/JzT89iluI=
+	t=1787593766; cv=none; b=JW/+fJshRAxE3VrOG4qJmFw0uMStoiz5d3Rc78friyjeyxxJsXzEWXnHhRi+sK7u118kFtrE6kgBfJcoqHbFsmxvZwtjrhdP3dQklYNmYEM+pQKc2GsE9RhBq0b23W6K2yMesOOLk8BaTTeH7F7MIX8ykmLxmH7W4zU2XVWAcQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787448098; c=relaxed/simple;
-	bh=vNDsmTJS3b+TDa+FCuTOZT6UlErVgF6OPwGcWRSVXtU=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=CFT0gE75eT/4eOCPcCn+6uLZ7cteF/t1GzQYrm69xuNBI/SfvQtfwWsdtIz1X6G5b/rzMb7XmRy1Z7Kx3E+PfV0zdpeZ2oJmXPeseRP7dYD8mIJ+T85BynXx8rUpF/Ckts3B3NCXVhkLsqOiL9Muhc+dx/v2plrt4nqunAGlfe4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net; spf=pass smtp.mailfrom=ownmail.net; dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b=UkkHuzsR; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=NBQFZQpS; arc=none smtp.client-ip=202.12.124.142
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ownmail.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ownmail.net
+	s=arc-20240116; t=1787593766; c=relaxed/simple;
+	bh=90suKUiXI7PlSRgK1Ox8F7w+EyQdnbS1Le8ieXJSXio=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=hyMne8zjTd1JXuguZkHeeeXxLXZ1+VLZSFDlWYtRoAOJxetWoqBhdCA+Z4PjBprPBfwCvvY0IOPPJ5y/ZktxOy7EjQ7+liXf4Q3ZtIKTNd0lbD/u27UJa0RkNta0GPznT/s7bMywuooeMpc8PcvFFgByH62I8iat8yHkuW65/f4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U0v/SvDj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ownmail.net header.i=@ownmail.net header.b="UkkHuzsR";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="NBQFZQpS"
-Received: from phl-compute-03.internal (phl-compute-03.internal [10.202.2.43])
-	by mailflow.stl.internal (Postfix) with ESMTP id EF557130008D;
-	Sat, 22 Aug 2026 21:21:34 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-03.internal (MEProxy); Sat, 22 Aug 2026 21:21:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ownmail.net; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to; s=fm3; t=
-	1787448094; x=1787455294; bh=Cb3hPU9JgV1SMJwig5J+Lg9o0SACLjG3CRI
-	meMjyW7k=; b=UkkHuzsRr1fQWBIath5b/mbCN5jIAowX9SHNVR6MpqT2gx4feoX
-	jICMixIhbr01wGq9J7P1y4383Epbnxt92kZVx2qRmYTXRMv6tQKh3oNicpdHTkwy
-	ZZnJKcY/n8hXRyo2F9lGbsoVn06NqriDj3mv2+n+2duxHM7/S04qEeNeqOcEwLul
-	n664tnwT5Fe8rmT6kTjEMzisq+O0L8cG1ZVd0IkQl9DB/c02k6iHQU3921u5dB05
-	RLaUTr0p09cBP89xjTmogyubD/8Ha8B13gAGVeTlWnQnZ3EGuyQg6U7fSleJwgFK
-	wSB1jQSjCgYh49OcAGQeX7m6Useal9I6fKQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1787448094; x=
-	1787455294; bh=Cb3hPU9JgV1SMJwig5J+Lg9o0SACLjG3CRImeMjyW7k=; b=N
-	BQFZQpSHXjPMy7Zut8IxuT9yKy2E3WmQCkSpSycmW06uho7oi0JEnGqGRG9dWxRm
-	dn/jp5xoX5kV+fSBuxhi1/8mAgAGmChzMVCJWbB0iYmMYOKB17w/afXckOCkTH3p
-	nIivAPabbVtcucVmmFKrRoDpzUkqicJQnVhrfiiLWPJMHrzz8Bg9OEP4+R6B/a2W
-	catoQO238l44RZK4lrKv/rjkYwBEOvR7aCx75elOP2kb0Nnkq9L/Xo4MFcEzduIK
-	h7zfnCgjxXzXuU53XzsJYLT1Qa/oQ+GymmGLp6eT6K5MLYELKh/wobdnq78cVzgg
-	qwxGh2SjwZU15CGdbPN4Q==
-X-ME-Sender: <xms:HUuKahL1slkUMJQSuwEaTj2RLoPSZ8poxXl4N4ORbIq-wV-rWuFT_A>
-    <xme:HUuKau0fVRX_F3V2cPIuR4KNvdQRy34L-8g4C7w92d8RrCsQh3nKnxZVH9HyrX91y
-    n44uzolZ-q1EYyvtORjClgmMvurdTewjwqoJjyr-971KELBOQ>
-X-ME-Received: <xmr:HUuKatI2aIF3Kg4-diVjg6KrZVsBNjMMeprO9uMjtX7EZyEYWZa_AEjbTb868XRX5mXapUPuPoe9nNJK6AgxoIuSzxgcvDA>
-X-ME-Proxy-Cause: dmFkZTF28I7HEt3WBN6c6IzEpKsBN9AQLSnyMJtLuM3+uMUc3zO+tGnPoXT8ipzNMcGmpD
-    Nh/EQugbA8LMCcQc4rst0xaoqvW3m5KoxKY+S7+S2t2lFXv76tUZJtAWkvG13eRXWL66ge
-    L/YB4HSGqfsIbZdin/KVl2tu+7iQ5Z5mZ44UZXkZRfZ0b/Ux6b8HYB3uDDKLlUItXBM7wz
-    ybHDq9Ox6fpSUGhtUtIAqB7zBfKWbuvF++J39sA44KKBKyeJexGhCWVA2hf2FyxThWQHk5
-    PLdEQ+i8dSxgxUgESgr+9Eproy/1gvB1AJtRDtOn1BKOXhxDvSwn4yYIy4dHuI6P4IWYp5
-    FcpwvaOTN8qPk+8H0jf9ytdO/plO0vQsbXdotgsfOpq5qKOLRE9cqCgN3+bXIAf/xvwLl3
-    iqEbKZNXaLyi76lNdfCr641+Ef73L9NKF4wCJ0fHw2b3tcaiABea1z2+TZ/8Hp0HIEVNX9
-    92nqRejiVnmveSeHna0lAh7mN7HBln/z0r3QghIJOjDgzGHiL8a/b9CJufrlVZ2JScw7Qw
-    c61Bawx4Rk60YkE94sHAQASOL1f0WBrP1f/ro8Voj8dgqDNlZqHANoyxru4U40YQ2sa/CF
-    mwikD+ZQZFs7UFzgFkQEzc4zl3wHvkQ8xFqasOGSknOO+hlGD5uXLDUjvLdg
-X-ME-Proxy: <xmx:HUuKaiP5prlKmoaUvMz4ni0kEiVYLxAoWOfXwFr0AQm53XaHvh1HHA>
-    <xmx:HUuKauzinRrfvQ2pm_k8oQo3UKFUe3ElnMHojs5aDLNohNd1PKWpEg>
-    <xmx:HUuKaqIljCmqlsa_-R8Nsxx_955hQ3DOiTZgBfmznh6yoV8bzvoDvQ>
-    <xmx:HUuKatqYqx6nK9vm0JfErJblqkK1zlWHPyp1zbqvZrTwkRzQVFiuug>
-    <xmx:HkuKarHipHWOlhdO-MgJnmZ3QDCOCwFVrpUxLzirXt69eWpmJHgY3-9e>
-Feedback-ID: i9d664b8f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
- 22 Aug 2026 21:21:27 -0400 (EDT)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U0v/SvDj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A38B41F000E9;
+	Mon, 24 Aug 2026 17:49:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787593765;
+	bh=PXcM5X3uBKvKFdABV+dXq4fIKyqlgx4ANk3fPDAXJGY=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=U0v/SvDjWTxpVVRAXEaFwXgetWu8mbgLqIy9RlYwGxFSFBnMciUU3Pa3W9drfPF25
+	 2P5Y+TNzAJrFk3Lcjj+1e+4+1C7V0su9p3ITVPi6VaoexaDJeFgFpb0hqgptJVx928
+	 wyjUsLid2AhCmc0A5qZa9Oomn+CZjcIIJb4B+uFskJxtCJibzDaHTu/S7HU/8fzfaB
+	 82uVG3XkMoWoKPQIzBBHyf7cQtjt1nU8Q56k/cwTXDmK1qxkuoODPUKbKFxsW0TyLv
+	 bcFExql9IaoqLlH5bU9FlvivvQyWSx2WYvm0mXsVPA10FErjBWOt6DQTC4DnMLLx46
+	 fHHPfXOl4niDg==
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 7B2DCF4006A;
+	Mon, 24 Aug 2026 13:49:23 -0400 (EDT)
+Received: from phl-imap-15 ([10.202.2.104])
+  by phl-compute-10.internal (MEProxy); Mon, 24 Aug 2026 13:49:23 -0400
+X-ME-Sender: <xms:I4SMaqOMmOG-UPHTwUCzOMoOwBKxCCj4rKSCCbowWTrCq6jOFXb4pw>
+    <xme:I4SMajwnIfgYk_1eqDTR_Ennsikt3CIt3u6Z-VZ53Aia9mf6T6S_rYnegrgqeNcNB
+    8XPSCerfNVF8zPR1soC-HHlONyPqPtHTyDQnl88KXqPPadx2pio2cwS>
+X-ME-Proxy-Cause: dmFkZTEhxdDtUpllTHrqstN18oDAkCQb3QAt856ufTOaFLeUg8o+LMg/a4UZ3D4hP9DtZY
+    F3Ryksg3VzUj9CzcUm3C9lk5xqxp3VHAxJbuzKYrfJEOXQF7166wHgRGQ1ssx7cte54Rum
+    3GktrAmFv6hlvG0EXZITf7bjBrr4JSjILoDLyWjxoscMWd3UzlJ3qmofuiQtCYrbtqNw3T
+    a1vuRV5j2VaIj70DuMAK/H8m715VK8tEx1GB6+yQuWqz0BuXCLTmQYehSiDUmYJ0xeqiUz
+    9W3CmMCNA1G+smMDtcw3ONbTEkeE5j6MY8pylI82lOUvM1b+9W+MtHfzk/ApujlQeFzZm8
+    zn7eWrmzTmHm+r5U9JxBxUTFQQXuR7mtMTZCjQ88R648L1fL5K2uRVRWX2D2DrDYhH/6KM
+    2YR+TFvy0iYYhD4MxdIZytboaGV4+1JRaYOfeNdVR9wJVUItZZviUlme9jeCIdd8dO9fXR
+    Q9cn/p0oEgcnU5fAED7LmcS3QUPGoRQWYmV0fQq0ndWlsd2L6yqMa7kuyA2ayNMNUyDzLK
+    3xS3VpjeHubqFxEmJDQiItVsEsWrPr1zJ8tgHWWUnN/4RE81JpOMGeJRWKLfR3pxJWB1mm
+    fnSuyX38J6J8NdyUYbaX3tA6HdioZmYAQQcs6YlCA5gy1Ep3Dkdy2zi8t7Vg
+X-ME-Proxy: <xmx:I4SMakUwlrPuNVe1NFA6MCqWtQYUbFTTqtaRsjMDmbJc7Wu7EIXZ8g>
+    <xmx:I4SMakCdNbugk5JqJrrWKZKRM62FDGVRxZjbP_YkJUrb_e-q7450FQ>
+    <xmx:I4SManGaDKgvXRDRsf7EVJVHND1c4yumwZ8_bt6wjkpfyS5II7jevQ>
+    <xmx:I4SMagd37ZaRg4ExO--M1E7TCXJOJnBr3laUrSY3w35T-0g6ReXubw>
+    <xmx:I4SMak9EypA4RZJSgzAPfSfkOCjT_5JJDVqQcL0rwqUfgsoSpscQYFNn>
+Feedback-ID: ifa6e4810:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 54BA57811F0; Mon, 24 Aug 2026 13:49:23 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: NeilBrown <neilb@ownmail.net>
-To: "Amir Goldstein" <amir73il@gmail.com>
-Cc: "Jan Kara" <jack@suse.cz>, "Miklos Szeredi" <miklos@szeredi.hu>,
- "Ian Kent" <raven@themaw.net>, "Chuck Lever" <cel@kernel.org>,
+X-ThreadId: A-zzBGauvJA-
+Date: Mon, 24 Aug 2026 13:49:05 -0400
+From: "Chuck Lever" <cel@kernel.org>
+To: NeilBrown <neil@brown.name>, "Ian Kent" <raven@themaw.net>,
  "Jake Edge" <jake@lwn.net>, "Ilya Dryomov" <idryomov@gmail.com>,
  "Alex Markuze" <amarkuze@redhat.com>,
  "Viacheslav Dubeyko" <slava@dubeyko.com>, "Jan Harkes" <jaharkes@cs.cmu.edu>,
  coda@cs.cmu.edu, "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>,
+ "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
  "Trond Myklebust" <trondmy@kernel.org>, "Anna Schumaker" <anna@kernel.org>,
+ "Amir Goldstein" <amir73il@gmail.com>,
  "Andrew Morton" <akpm@linux-foundation.org>,
- "Miklos Szeredi" <mszeredi@redhat.com>, autofs@vger.kernel.org,
- linux-kernel@vger.kernel.org, ceph-devel@vger.kernel.org,
- codalist@coda.cs.cmu.edu, linux-fsdevel@vger.kernel.org,
- linux-nfs@vger.kernel.org
-Subject: Re: [PATCH v1 03/12] fsnotify: don't hold a spin_lock across
- fsnotify_recalc_mask() calls.
-In-reply-to:
- <CAOQ4uxj6O8Ukbn-vWU-o+zOAYyofokCTAGnSifSDh9-PACCTdg@mail.gmail.com>
-References: <20260803012648.2195405-1-neilb@ownmail.net>
-  <20260803012648.2195405-4-neilb@ownmail.net>
-  <CAJfpegs-k3skRGiwZvQLzD7OrAK4KL8zwmpmJKyjRHSQ-rqX+Q@mail.gmail.com>
-  <178642552869.2852630.11443303758249822243@noble.neil.brown.name>
-  <178675372176.2852630.1305553887009521382@noble.neil.brown.name>
-  <oh2lg2agqxwqopecacq6sfdnky5faxidwsybkvbwbq24r6tw6o@4swfog5ocwwb>
-  <CAOQ4uxgtKvKmPaK8rPAZDSwu0Hr9JAmqJi0a1VX_Rg7jDo8HrQ@mail.gmail.com>
-  <178709583480.2852630.4575326968116183366@noble.neil.brown.name>
-  <CAOQ4uxj6O8Ukbn-vWU-o+zOAYyofokCTAGnSifSDh9-PACCTdg@mail.gmail.com>
-Date: Sun, 23 Aug 2026 11:21:23 +1000
-Message-id: <178744808383.3510150.4744569341920131567@noble.neil.brown.name>
-Reply-To: NeilBrown <neil@brown.name>
+ "Miklos Szeredi" <mszeredi@redhat.com>
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org,
+ ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
+ linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org
+Message-Id: <f9d16f36-10e6-4bec-aa8e-b9b3cb3ad872@app.fastmail.com>
+In-Reply-To: <20260815042707.2535717-5-neilb@ownmail.net>
+References: <20260815042707.2535717-1-neilb@ownmail.net>
+ <20260815042707.2535717-5-neilb@ownmail.net>
+Subject: Re: [PATCH v2 04/18] nfs: separate locked regions in
+ nfs_clear_verifier_directory()
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Wed, 19 Aug 2026, Amir Goldstein wrote:
-> On Wed, Aug 19, 2026 at 1:30=E2=80=AFAM NeilBrown <neilb@ownmail.net> wrote:
-> > --- a/fs/notify/dnotify/dnotify.c
-> > +++ b/fs/notify/dnotify/dnotify.c
-> > @@ -75,7 +75,7 @@ static void dnotify_recalc_inode_mask(struct fsnotify_m=
-ark *fsn_mark)
-> >                 return;
-> >         fsn_mark->mask =3D new_mask;
-> >
-> > -       fsnotify_recalc_mask(fsn_mark->connector);
-> > +       fsnotify_recalc_mask_inatomic(fsn_mark->connector);
->=20
-> I don't think skipping update_children is correct when called
-> from fcntl_dirnotify().
 
-Thanks for catching that.
-I agree we shouldn't skip here, but also we mustn't call
-fsnotify_conn_set_children_dentry_flags() at this point because
-a spinlock is held.
-In fcntl_dirnotify() is it safe to delay that call until after the
-lock is dropped because fsnotify_group_lock() is still held.
+On Sat, Aug 15, 2026, at 2:21 PM, NeilBrown wrote:
+> nfs_clear_verifier_directory() locks the dir to call
+>   nfs_unset_verifier_delegated()
+> and also to walk the d_children list.
+> These are two separate needs and they don't need to both
+> be in the same locked region.
+>
+> Subsequent patches will use a helper for walking the d_children list and
+> that helper may drop the lock temporarily.  To simplify this transition,
+> split the locked range by dropping and retaking the lock between to make
+> two separate locked regions.
 
-So I would like to keep that part of my patch - the part where
-fsnotify_recalc_mask() (and dnotify_recalc_inode_mask()) returns the
-"update_children" flag and the caller is responsible for calling
-fsnotify_conn_set_children_dentry_flags().
+I hit this running xfstests against tmpfs with the series applied.  The
+trigger was incidental (an unrelated process chmod'ed a file on an
+NFSv4 mount while xfstests was running) so it is not deterministic, but
+the path looks reachable by any SETATTR that returns a delegation on a
+directory:
 
-Some callers call fsnotify_conn_set_children_dentry_flags() immediately,
-some wait until a spinlock is dropped, dnotify_handle_event() wouldn't
-call it at all.
+  BUG: sleeping function called from invalid context at fs/nfs/dir.c:1497
+  in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 2385380
+  preempt_count: 1, expected: 0
+  Call Trace:
+   __might_resched+0x165/0x180
+   nfs_clear_verifier_delegated+0x112/0x250 [nfs]
+   nfs_start_delegation_return+0xa1/0x130 [nfsv4]
+   nfs4_inode_return_delegation+0x1b/0xf0 [nfsv4]
+   nfs4_inode_make_writeable+0xa9/0x130 [nfsv4]
+   nfs4_proc_setattr+0xa2/0xf0 [nfsv4]
+   nfs_setattr+0x1f2/0x480 [nfs]
+   notify_change+0x321/0x380
+   chmod_common+0x10d/0x1c0
+   do_fchmodat+0x8a/0x110
+   __x64_sys_chmod+0x1d/0x30
 
-Your patch might be a good addition but it doesn't block the d_children
-walk in all cases where a spinlock is held, so it doesn't help my
-immediate need.
+Line 1497 is the d_for_each_positive_child() call.
 
-Thanks,
-NeilBrown
+
+-- 
+Chuck Lever
