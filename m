@@ -1,220 +1,175 @@
-Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com [209.85.210.72])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout-a3-smtp.messagingengine.com (fout-a3-smtp.messagingengine.com [103.168.172.146])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31AEC366042
-	for <autofs@vger.kernel.org>; Thu,  3 Sep 2026 08:16:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E5A4374A1A;
+	Thu,  3 Sep 2026 12:28:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.146
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788423364; cv=none; b=nhynY5Bz2KbwFVsFJoF7pU3AGoqmyJ+k1exuVQwEhTpRShX+eR4Z3OeaT3z9CuioVDLf8hpKo7d7OBIwkQW2Xk0X1ON73WjMsx0RNR0bjNGKiriLZ9zC72Zwn2zaJfMEXcxQxhwyj6xN7bFT7e+hpFtJ84wx583oHaLRQHeMNVQ=
+	t=1788438522; cv=none; b=tXoPYcpnXxFKBChW6D1wm+T3Qu2Fy1fD6IZT8RZ9osw0hWM/a27PgJC0pXoN6eBqWJOUp6YDOybONLra9y6pakIGLDQF//bziadg0EuVezW7kK6mJhFPXNNL/ByFAMNYgv+ebXq7EMd2BUfynHPT4Yz4yOIl7aIHoW6N+KEIVf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788423364; c=relaxed/simple;
-	bh=xKl8zdXZA8MMkoRIVmIje/2ob+QEUAoRC41sjFvuE/I=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=lT0AL/cnuyExuwwHzpxWmxK8RJZne+s/YqACXDWLmEXUWqk/nxTHwjgZOYalEFZpq95e9FgIR2rNjXN7+YvBvLqCu7rPtVdX8e6h0jFh8UJRoEyAn9W69QA9b4dYcmDEj8NC70wIhhfkiQgNgEsgCasnw5RmS6QyqJge7D8cr2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.210.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-ot1-f72.google.com with SMTP id 46e09a7af769-7eb60cfd476so2632569a34.3
-        for <autofs@vger.kernel.org>; Thu, 03 Sep 2026 01:16:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788423362; x=1789028162;
-        h=content-type:to:from:subject:message-id:in-reply-to:date
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=Fk3dOFeTDQ3UwbqQJMafBAVcPkOJiJcXyMlw1Bm3F/g=;
-        b=nFQKKAw5maCbIN3RE66nf8d++Zzr1SrpEq28sZRq/CTqjva96q+n7UTFm4QXo1ZXVS
-         +UW59RWlPdeJ8G286bVA1DimH0OEZf2J5+7b4ighy1l6GeWSeSrz1AZYB5isVWqLKtLM
-         roCLacnnw31V9PponA0uHHfmT4xeI3URXN0Q9F66VMYFvgc5NxE72bQHCoQecypPnMDt
-         U9bQsfeAfuOuTdd+Bg9xjR6/83sYzwQh4fF+A8OwZit3aSHQO15oPPHi6zAhKzFlLLbT
-         5Q8vU6eOF1MEz5TYMVxWeTSV1rrmD8rD9FV6Eh6jz4LG1Pg6uZa+2iFp91C+65KKnesT
-         EWkw==
-X-Gm-Message-State: AFuF++kVBjYdpge8hrhj89kcg8KbzCU0p2XJCbq5n7nwrLIzVMawFDaA
-	r71eXuaYrKnoeEeWMmdAbcGkZByADHuahDm+1qo4udvlBpU7HWaOU8VrPeV6k7ACX+S/VbSa8+l
-	mtu29nbZZHxJoQWslLFj71Hj/aFdMZi+W+1J34mg4wDxHcWQa7jWYhLHqDjM=
+	s=arc-20240116; t=1788438522; c=relaxed/simple;
+	bh=/0zMGqTUhBIF/NjG6lcR7sVz/bFVBB6Gqbthexjn7Lc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=dbrzQJHBgbs9Jqum/l2p7Kgody1W1Hs8u3au49W0AQO1lhjtxxaoUJ+gB70AVdZBfEllRw4QKrWfsOGifeQXpnnvdM7XW5cV9kC991UuNc03FuyrPNA+E/0NJlQdLvaPmYxK+kH4PrKdgRa6FlouLS9EQwTGf1SPSh1FJYX7Zpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=LA9ZSAmm; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=fBG18+q0; arc=none smtp.client-ip=103.168.172.146
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="LA9ZSAmm";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="fBG18+q0"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.phl.internal (Postfix) with ESMTP id 5A3A1EC001A;
+	Thu,  3 Sep 2026 08:28:39 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Thu, 03 Sep 2026 08:28:39 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1788438519;
+	 x=1788524919; bh=QWW0typ8ODLd5JsXCVVB3NFM6+RdMgBae3WRu5OCI4s=; b=
+	LA9ZSAmmWLgELeAB9ANroCAIxMplLN4Rp77vWhswH3bxgXCFcrD+McnTZ/fAbLPr
+	NTv8xNiDhIKxNssMms4U1qZvhAyiCtDjG+BuwiQlFlOjNmGRRuDAOXDIOTuZxXjo
+	tNqzX0e2+/yhdubhp16crMsu8lMwuPeWnyF8XXTa68JsD98+OJX+uWBaYHAH7QJT
+	jRgxYcotXoAqRZPW0Rrc15yFxtzCX64mkAncl7DCND7+71blgRpNVGM5EP6kwezk
+	W3hZ9NeytF3ymXTvNVxTVhVMJ1Q1pLzP6TyM+KIAza0piD/kDFCI/PAZ0+R56ZR7
+	+uK7bWc1khjWRzz0SSTOzg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1788438519; x=
+	1788524919; bh=QWW0typ8ODLd5JsXCVVB3NFM6+RdMgBae3WRu5OCI4s=; b=f
+	BG18+q0ieTcPzZnSFbH0BrOreox2z95gUeYo46suq2cKoretDgumxNibsk8yHpwI
+	OeVijun/9JcH8bqfaVDAI+bwBDJMNLnMl9w7TKudePW3trDWrnrreQYi/6AUQjAq
+	RXP0E+nuWFnGhe4Uz7BenJTaEj9iG+j7pUajw0pwR761SruVcPj5Mb4xSG+Bx958
+	8ri8HDUQE6HW5MbWJTQubTCCXdeLsnC6qRanla0W9jfG3fnwvZ8eu7ST/VdzrZQd
+	tmT7QihRhSBj0w26MkaD21+Yq5h20DUaWxylgt88wSHJm3njaJ2X++D3iD6pXpqd
+	x2olEOpuxWisE9ElN2akQ==
+X-ME-Sender: <xms:92eZascs4BZBMSv-ID2ILPst4blrXU_9UbcJi8mTGbwTrqJz7PtdyQ>
+    <xme:92eZatTVio11AHHH5NiQQFe0qe_GYZ58yFb3m4-9NyhqY-WHgnE1D2_pgF3HVV8cb
+    blpYa0p4XA2Ey-fcUFTf1zTGslKawBLI0mOb0Kr92vdHqMdAg>
+X-ME-Received: <xmr:92eZajtBNovv5a6TT8qwKduno_3XCcHa7B8-rH6Kjk6Th3QrJwX_LJMwReL_rrwOEfhmkEu8yom3RIjrwSd1ZduYLrNOqhiCzLlZ2UizmPPjKsXr_HpFCENX>
+X-ME-Proxy-Cause: dmFkZTFlsAYpnl69YsHaMHQye42HOsYZhwLZ2h0OOtL59vUp4XU847aaAllRPp/U5FFx0A
+    Io2LpHNXsHYkwOmXDWsEBbBaS+z8leI1KMX4Hn6H/Fp02OC9ipAs+VERXUXUBB/bebULVW
+    xoFIFI3f88ENUn9YDgksYmRWLQ0pfiQibEzpOveLlBafBQ5i274vtGKyEsQsCyBauNc8BD
+    onmqpcuNPUHSIO/+7su719h1TChVWwQ/1siG/tzJhbZZ8fSfp6Pmp7psgxfmw+w1c7cJv/
+    y70/2QjvT5STglJ3aaRqYE09IrV0I6oCbdj18dDbcoNt2K0FoLz2lEKnEl3HA6oJPMv3TC
+    7T7Uvn8l6ITHDZNQHGlP7pAjSVjlin3MMQgd71ySTrf1EY3tUmIxGgYcz0QmQefYrTQPmH
+    h+29wxWgj/sgMbrlOG9q+1f6um/F1/U1EydhxUOMClOQ4fHy5Q/T+OcBgsr+My//GKjj5g
+    5c31IIAioNVrVwdffkCCGbvNCVDknj7ApQTCu8C1/9udWKrj5C1wkrAkWJqi/ltuvXyTgD
+    a/QKo17Z9c8fTUiPTlI1boh1+6C74KdctbCzaTUNsAhE+bpwgwsa+XsIvg4tgNYZO5eTnf
+    zWwUttxZWLGg6pZ55iSMZnG5lwFCtvb0YytR3bKcL1dhlRYFvfUidHakh0tg
+X-ME-Proxy: <xmx:92eZauflAcbzV3RwQ91Xz_U6EmdzHSdmafvC6Y4De6Faf2ztXFX7_A>
+    <xmx:92eZatb7jm4f1N_Wc-VWoxOp4VV_temRPqs8wVLTQsexx09xb-xUgw>
+    <xmx:92eZagZ8IycP34iL4p-hoFpLoDFmbsJ52HxpX8kr70ZWbRX_lllhKw>
+    <xmx:92eZaiKD1JdiI-MnM3r8HWvOvZA0eN8z5WdhYK6EmyfC7jolUatuWQ>
+    <xmx:92eZanCOCoE6zWvDXExaVCY5da7xM6l7ClFbHsnQ2MGcj5VQMBKk1ly8>
+Feedback-ID: i31e841b0:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 3 Sep 2026 08:28:36 -0400 (EDT)
+Message-ID: <29f823ee-9423-4d19-97bf-8fa951016bf9@themaw.net>
+Date: Thu, 3 Sep 2026 20:28:32 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:4b92:b0:6b1:9ffe:a71c with SMTP id
- 006d021491bc7-6b47bad3ff7mr8467655eaf.0.1788423362108; Thu, 03 Sep 2026
- 01:16:02 -0700 (PDT)
-Date: Thu, 03 Sep 2026 01:16:02 -0700
-In-Reply-To: <20260903055751.10197-1-jeffinphilip14@gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a992cc2.0b659fcc.16ebfd.0002.GAE@google.com>
-Subject: Re: [syzbot] [autofs?] memory leak in autofs_new_ino
-From: syzbot <syzbot+df1db6e034b3953e19f5@syzkaller.appspotmail.com>
-To: autofs@vger.kernel.org, jeffinphilip14@gmail.com, 
-	linux-kernel@vger.kernel.org, raven@themaw.net, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] fs: autofs: fix memory leak in autofs_fill_super()
+To: Jeffin Philip <jeffinphilip14@gmail.com>
+Cc: bodonnel@redhat.com, brauner@kernel.org, autofs@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ syzbot+df1db6e034b3953e19f5@syzkaller.appspotmail.com, stable@vger.kernel.org
+References: <20260903081048.132524-1-jeffinphilip14@gmail.com>
+Content-Language: en-AU
+From: Ian Kent <raven@themaw.net>
+Autocrypt: addr=raven@themaw.net;
+ keydata= xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
+ E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
+ gpcs2iDQlg5CmuXDhc5z1ztNubv8hElSlFX/4l/U18OfrdTbbcjF/fivBkzkVobtltiL+msN
+ bDq5S0K2KOxRxuXGaDShvfbz6DnajoVLEkNgEnGpSLxQNlJXdQBTE509MA30Q2aGk6oqHBQv
+ zxjVyOu+WLGPSj7hF8SdYOjizVKIARGJzDy8qT4v/TLdVqPa2d0rx7DFvBRzOqYQL13/Zvie
+ kuGbj3XvFibVt2ecS87WCJ/nlQxCa0KjGy0eb3i4XObtcU23fnd0ieZsQs4uDhZgzYB8LNud
+ WXx9/Q0qsWfvZw7hEdPdPRBmwRmt2O1fbfk5CQN1EtNgS372PbOjQHaIV6n+QQP2ELIa3X5Z
+ RnyaXyzwaCt6ETUHTslEaR9nOG6N3sIohIwlIywGK6WQmRBPyz5X1oF2Ld9E0crlaZYFPMRH
+ hQtFxdycIBpTlc59g7uIXzwRx65HJcyBflj72YoTzwchN6Wf2rKq9xmtkV2Eihwo8WH3XkL9
+ cjVKjg8rKRmqIMSRCpqFBWJpT1FzecQ8EMV0fk18Q5MLj441yQARAQABzRtJYW4gS2VudCA8
+ cmF2ZW5AdGhlbWF3Lm5ldD7CwXsEEwECACUCGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheA
+ BQJOnjOcAhkBAAoJEOdnc4D1T9iphrYQALHK3J5rjzy4qPiLJ0EE9eJkyV1rqtzct5Ah9pu6
+ LSkqxgQCfN3NmKOoj+TpbXGagg28qTGjkFvJSlpNY7zAj+fA11UVCxERgQBOJcPrbgaeYZua
+ E4ST+w/inOdatNZRnNWGugqvez80QGuxFRQl1ttMaky7VxgwNTXcFNjClW3ifdD75gHlrU0V
+ ZUULa1a0UVip0rNc7mFUKxhEUk+8NhowRZUk0nt1JUwezlyIYPysaN7ToVeYE4W0VgpWczmA
+ tHtkRGIAgwL7DCNNJ6a+H50FEsyixmyr/pMuNswWbr3+d2MiJ1IYreZLhkGfNq9nG/+YK/0L
+ Q2/OkIsz8bOrkYLTw8WwzfTz2RXV1N2NtsMKB/APMcuuodkSI5bzzgyu1cDrGLz43faFFmB9
+ xAmKjibRLk6ChbmrZhuCYL0nn+RkL036jMLw5F1xiu2ltEgK2/gNJhm29iBhvScUKOqUnbPw
+ DSMZ2NipMqj7Xy3hjw1CStEy3pCXp8/muaB8KRnf92VvjO79VEls29KuX6rz32bcBM4qxsVn
+ cOqyghSE69H3q4SY7EbhdIfacUSEUV+m/pZK5gnJIl6n1Rh6u0MFXWttvu0j9JEl92Ayj8u8
+ J/tYvFMpag3nTeC3I+arPSKpeWDX08oisrEp0Yw15r+6jbPjZNz7LvrYZ2fa3Am6KRn0zsFN
+ BE6c/ycBEADZzcb88XlSiooYoEt3vuGkYoSkz7potX864MSNGekek1cwUrXeUdHUlw5zwPoC
+ 4H5JF7D8q7lYoelBYJ+Mf0vdLzJLbbEtN5+v+s2UEbkDlnUQS1yRo1LxyNhJiXsQVr7WVA/c
+ 8qcDWUYX7q/4Ckg77UO4l/eHCWNnHu7GkvKLVEgRjKPKroIEnjI0HMK3f6ABDReoc741RF5X
+ X3qwmCgKZx0AkLjObXE3W769dtbNbWmW0lgFKe6dxlYrlZbq25Aubhcu2qTdQ/okx6uQ41+v
+ QDxgYtocsT/CG1u0PpbtMeIm3mVQRXmjDFKjKAx9WOX/BHpk7VEtsNQUEp1lZo6hH7jeo5me
+ CYFzgIbXdsMA9TjpzPpiWK9GetbD5KhnDId4ANMrWPNuGC/uPHDjtEJyf0cwknsRFLhL4/NJ
+ KvqAuiXQ57x6qxrkuuinBQ3S9RR3JY7R7c3rqpWyaTuNNGPkIrRNyePky/ZTgTMA5of8Wioy
+ z06XNhr6mG5xT+MHztKAQddV3xFy9f3Jrvtd6UvFbQPwG7Lv+/UztY5vPAzp7aJGz2pDbb0Q
+ BC9u1mrHICB4awPlja/ljn+uuIb8Ow3jSy+Sx58VFEK7ctIOULdmnHXMFEihnOZO3NlNa6q+
+ XZOK7J00Ne6y0IBAaNTM+xMF+JRc7Gx6bChES9vxMyMbXwARAQABwsFfBBgBAgAJBQJOnP8n
+ AhsMAAoJEOdnc4D1T9iphf4QAJuR1jVyLLSkBDOPCa3ejvEqp4H5QUogl1ASkEboMiWcQJQd
+ LaH6zHNySMnsN6g/UVhuviANBxtW2DFfANPiydox85CdH71gLkcOE1J7J6Fnxgjpc1Dq5kxh
+ imBSqa2hlsKUt3MLXbjEYL5OTSV2RtNP04KwlGS/xMfNwQf2O2aJoC4mSs4OeZwsHJFVF8rK
+ XDvL/NzMCnysWCwjVIDhHBBIOC3mecYtXrasv9nl77LgffyyaAAQZz7yZcvn8puj9jH9h+mr
+ L02W+gd+Sh6Grvo5Kk4ngzfT/FtscVGv9zFWxfyoQHRyuhk0SOsoTNYN8XIWhosp9GViyDtE
+ FXmrhiazz7XHc32u+o9+WugpTBZktYpORxLVwf9h1PY7CPDNX4EaIO64oyy9O3/huhOTOGha
+ nVvqlYHyEYCFY7pIfaSNhgZs2aV0oP13XV6PGb5xir5ah+NW9gQk/obnvY5TAVtgTjAte5tZ
+ +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
+ 8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
+ Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
+In-Reply-To: <20260903081048.132524-1-jeffinphilip14@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello,
-
-syzbot has tested the proposed patch but the reproducer is still triggering an issue:
-memory leak in create_pipe_files
-
-BUG: memory leak
-unreferenced object 0xffff88810ceec180 (size 176):
-  comm "syz.0.17", pid 6581, jiffies 4294948258
-  hex dump (first 32 bytes):
-    00 00 00 00 02 00 2c 0c 60 a4 87 85 ff ff ff ff  ......,.`.......
-    d8 a5 46 0d 81 88 ff ff c0 36 91 00 81 88 ff ff  ..F......6......
-  backtrace (crc ec35cd54):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    kmem_cache_alloc_noprof+0x34f/0x440 mm/slub.c:4931
-    alloc_empty_file+0x57/0x180 fs/file_table.c:262
-    alloc_file fs/file_table.c:396 [inline]
-    alloc_file_pseudo+0xd3/0x180 fs/file_table.c:427
-    create_pipe_files+0x106/0x2f0 fs/pipe.c:1042
-    __do_pipe_flags fs/pipe.c:1088 [inline]
-    do_pipe2+0x6c/0x160 fs/pipe.c:1136
-    __do_sys_pipe fs/pipe.c:1159 [inline]
-    __se_sys_pipe fs/pipe.c:1157 [inline]
-    __x64_sys_pipe+0x18/0x20 fs/pipe.c:1157
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-BUG: memory leak
-unreferenced object 0xffff88810d8431c0 (size 56):
-  comm "syz.0.17", pid 6581, jiffies 4294948258
-  hex dump (first 32 bytes):
-    ff ff 01 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 2672a0c6):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    kmem_cache_alloc_noprof+0x34f/0x440 mm/slub.c:4931
-    lsm_file_alloc security/security.c:171 [inline]
-    security_file_alloc+0x30/0x250 security/security.c:2406
-    init_file+0x3e/0x160 fs/file_table.c:184
-    alloc_empty_file+0x75/0x180 fs/file_table.c:266
-    alloc_file fs/file_table.c:396 [inline]
-    alloc_file_pseudo+0xd3/0x180 fs/file_table.c:427
-    create_pipe_files+0x106/0x2f0 fs/pipe.c:1042
-    __do_pipe_flags fs/pipe.c:1088 [inline]
-    do_pipe2+0x6c/0x160 fs/pipe.c:1136
-    __do_sys_pipe fs/pipe.c:1159 [inline]
-    __se_sys_pipe fs/pipe.c:1157 [inline]
-    __x64_sys_pipe+0x18/0x20 fs/pipe.c:1157
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-BUG: memory leak
-unreferenced object 0xffff888102f619c0 (size 184):
-  comm "syz-executor", pid 6483, jiffies 4294948379
-  hex dump (first 32 bytes):
-    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 4a068722):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    kmem_cache_alloc_noprof+0x34f/0x440 mm/slub.c:4931
-    prepare_creds+0x22/0x570 kernel/cred.c:185
-    copy_creds+0x44/0x290 kernel/cred.c:286
-    copy_process+0x988/0x2d70 kernel/fork.c:2153
-    kernel_clone+0x101/0x710 kernel/fork.c:2748
-    __do_sys_clone+0x7f/0xb0 kernel/fork.c:2889
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-BUG: memory leak
-unreferenced object 0xffff888102e91600 (size 32):
-  comm "syz-executor", pid 6483, jiffies 4294948379
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    f8 52 0a 00 81 88 ff ff 00 00 00 00 00 00 00 00  .R..............
-  backtrace (crc 9ae86290):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    __do_kmalloc_node mm/slub.c:5333 [inline]
-    __kmalloc_noprof+0x3bf/0x550 mm/slub.c:5359
-    _kmalloc_noprof include/linux/slab.h:992 [inline]
-    _kzalloc_noprof include/linux/slab.h:1309 [inline]
-    lsm_blob_alloc+0x4d/0x80 security/security.c:218
-    lsm_cred_alloc security/security.c:235 [inline]
-    security_prepare_creds+0x2d/0x290 security/security.c:2866
-    prepare_creds+0x317/0x570 kernel/cred.c:215
-    copy_creds+0x44/0x290 kernel/cred.c:286
-    copy_process+0x988/0x2d70 kernel/fork.c:2153
-    kernel_clone+0x101/0x710 kernel/fork.c:2748
-    __do_sys_clone+0x7f/0xb0 kernel/fork.c:2889
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-BUG: memory leak
-unreferenced object 0xffff88810d015000 (size 176):
-  comm "syz.0.19", pid 6612, jiffies 4294948379
-  hex dump (first 32 bytes):
-    00 00 00 00 02 00 2c 0c 60 a4 87 85 ff ff ff ff  ......,.`.......
-    80 8c 9c 11 81 88 ff ff c0 3c 91 00 81 88 ff ff  .........<......
-  backtrace (crc 95068e96):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    kmem_cache_alloc_noprof+0x34f/0x440 mm/slub.c:4931
-    alloc_empty_file+0x57/0x180 fs/file_table.c:262
-    alloc_file fs/file_table.c:396 [inline]
-    alloc_file_pseudo+0xd3/0x180 fs/file_table.c:427
-    create_pipe_files+0x106/0x2f0 fs/pipe.c:1042
-    __do_pipe_flags fs/pipe.c:1088 [inline]
-    do_pipe2+0x6c/0x160 fs/pipe.c:1136
-    __do_sys_pipe fs/pipe.c:1159 [inline]
-    __se_sys_pipe fs/pipe.c:1157 [inline]
-    __x64_sys_pipe+0x18/0x20 fs/pipe.c:1157
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-BUG: memory leak
-unreferenced object 0xffff888127a600e0 (size 56):
-  comm "syz.0.19", pid 6612, jiffies 4294948379
-  hex dump (first 32 bytes):
-    ff ff 01 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 2672a0c6):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4597 [inline]
-    slab_alloc_node mm/slub.c:4917 [inline]
-    kmem_cache_alloc_noprof+0x34f/0x440 mm/slub.c:4931
-    lsm_file_alloc security/security.c:171 [inline]
-    security_file_alloc+0x30/0x250 security/security.c:2406
-    init_file+0x3e/0x160 fs/file_table.c:184
-    alloc_empty_file+0x75/0x180 fs/file_table.c:266
-    alloc_file fs/file_table.c:396 [inline]
-    alloc_file_pseudo+0xd3/0x180 fs/file_table.c:427
-    create_pipe_files+0x106/0x2f0 fs/pipe.c:1042
-    __do_pipe_flags fs/pipe.c:1088 [inline]
-    do_pipe2+0x6c/0x160 fs/pipe.c:1136
-    __do_sys_pipe fs/pipe.c:1159 [inline]
-    __se_sys_pipe fs/pipe.c:1157 [inline]
-    __x64_sys_pipe+0x18/0x20 fs/pipe.c:1157
-    do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-    do_syscall_64+0xf8/0x610 arch/x86/entry/syscall_64.c:94
-    entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-connection error: failed to recv *flatrpc.ExecutorMessageRawT: EOF
+On 3/9/26 16:10, Jeffin Philip wrote:
+> In autofs_fill_super(), we create a new inode using
+> autofs_new_ino(), however, if we fail to create root_inode,
+> (that is, root_inode failure path), we return -ENOMEM without
+> freeing the new inode(ino) that we created causing a memory leak.
+> Fix this by adding autofs_free_ino() to free the inode we created
+> in root_inode failure path before returning ENOMEM.
+>
+> Reported-by: syzbot+df1db6e034b3953e19f5@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=df1db6e034b3953e19f5
+> Fixes: 66917f85db60 ("autofs: add: new_inode check in autofs_fill_super()")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jeffin Philip <jeffinphilip14@gmail.com>
+> ---
+>   fs/autofs/inode.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+> index c1e210cec436..6b15a3717ba7 100644
+> --- a/fs/autofs/inode.c
+> +++ b/fs/autofs/inode.c
+> @@ -323,8 +323,10 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
+>   		return -ENOMEM;
+>   
+>   	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
+> -	if (!root_inode)
+> +	if (!root_inode) {
+> +		autofs_free_ino(ino);
+>   		return -ENOMEM;
+> +	}
+>   
+>   	root_inode->i_uid = ctx->uid;
+>   	root_inode->i_gid = ctx->gid;
 
 
-Tested on:
+Thanks Jeffin, this looks better.
 
-commit:         8d3ae592 Linux 7.2
-git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-console output: https://syzkaller.appspot.com/x/log.txt?x=173850f9580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=11ad91fcc8fa7933
-dashboard link: https://syzkaller.appspot.com/bug?extid=df1db6e034b3953e19f5
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=17eb8b49580000
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+
+Christian, can you take this one please, ;)
 
