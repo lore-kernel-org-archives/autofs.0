@@ -1,135 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=103.168.172.156
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792637207;
-	b=rjI6TxSHQj66AmDdcX+/EH+jSYPzfioq5BqZEaWU4vSKevs7vOoEOJBTUpGO0Kf6nQ05
-	 MKD5GyXXQjYdt0ZO6PEwMoiLvOD+Xuqc1PGuNQC9aA2uwYxh2FumvszWChAtxR6/0UQOQ
-	 enYxFl99jOy2KcoKk6mC+35d0wopLVQR1gOdyKy1A0XKOAn8wefCEAV3P5cpoLjsYLw2g
-	 t5IU9BM74FO5iV8UiL9QWgJMWWvblL2lx7e88ra91g4og83UVuUlsdVBx+Y7CRpaOsKcu
-	 d3QLlAHhvW2IBviIte05QIsQpiGmGeDwV/RhKksQWPqe+AOsAtE/dMUjx3OPHZh63lA==
+	t=1792764342;
+	b=xCmOpL10NhgZuX8glq9kmbs8czLxWG3PmGMuepN9Qn9jG+g1o0rHwbpPjdYtBEn0SKBz
+	 WqdnymA0kQ1GYta4ZdgBM3iWMyyAji/ocC33ZKW85TczFql2Zj+Ssx8skP8L7MszNqUaN
+	 49p5iNEnSvu5Sc+7VME7t48yT6d8dEmhKsNUwlKr5uVCdSHgma3PfjGWKhmijOS7Gq/TJ
+	 HFsuHoXo74XoiFUpR/JB0PMX/u9kFzBJTIx4FBSI/1PtKylrQ/+FnMGtOl1X1qZuNlhIO
+	 dRZ/6bJNn2ql2BYcgCJU/0cmx6h2yatbqvVA4Ou6zVqgQzT/pyDx2zdoB6U6oKt7xcg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792637207;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
-	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
-	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
-	 Received:Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Content-Transfer-Encoding:User-Agent:MIME-Version;
-	bh=b8JrLeZmohBXZxoZ8hIHhxCw9MvjJJNFtjwd/KPNiN4=;
-	b=L9+r38WkV7suM9NmnpHc/zosjbxk912AqwY4z8lfPr5cBI4iv4BOAWJLPOaBsxj3TpjY
-	 pJRvuN5dkMaAFnJMG7zNOxCiekZBFMJCRyiE1neUnHBIS0CwpTqQtA3O45juOPbUPv054
-	 hV8VmLHwXNpBmP7y6TdhnSTq6pj/ImZ+9g4AW3tuJVnf4LY0IQTjz8zQ9iS78mUxYpchT
-	 1/ilJCESilAqKP/uajSnI+M1QDPoowF85/amX+30jYk5Tn6NjQRVO0e02pajTAdBfqmOz
-	 NUoyCijynRytuhj4rkg/nCViuTY7scBfm4DYbOTCzVCeoXWbbFcS2Q8NlElHnWEoMaA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792764342;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=BUJVWluZQW/qDMSCSzMsGJRAgytWrmfDDzAkl2tvmys=;
+	b=vOODNpEo2tT+oIgVX/EHcpuIIxLzRo5V6Jmvq6WmudXJ/trDln3V0V3AzKP57GvAJMLf
+	 O/AeOlNJGR4HDjRRxy9gFfIKF/jz0AxQZ1iMU13mzQpXgxjBjbOH2HrWMEPmbS5xPm5FF
+	 iQjr3+cCc/57Vx6hdbfmcAqxJ/MU6S2fghylBm23kC19o/zrRcU5KxcYLEhTKwt7P2i+p
+	 +STyrE/DL3eq5JHqtVOohOPo6H65CaCeQsbNEx7+KXmu2GCTC16vzw1rbieormmBamOgb
+	 sw9XeIWHCVbemVzwRtv32yitiN0zuZaT6jok+etFJo9idaA4sE7s8JvatNhUmx29EIA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=themaw.net;
-	spf=pass smtp.mailfrom=themaw.net;
-	dkim=pass header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm1 header.b=SlzWuXRT;
-	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm2 header.b=vcwJoROo;
-	arc=none smtp.remote-ip=103.168.172.156
-Received: from fhigh-a5-smtp.messagingengine.com (fhigh-a5-smtp.messagingengine.com [103.168.172.156])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=qCHc+pkS;
+	arc=none smtp.remote-ip=209.85.218.54
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8727606A31A
-	for <autofs@vger.kernel.org>; Thu, 22 Oct 2026 02:46:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D8727606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26193606A31A
+	for <autofs@vger.kernel.org>; Fri, 23 Oct 2026 14:05:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 26193606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm1 header.b=SlzWuXRT;
-	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm2 header.b=vcwJoROo
-Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id D4BC814001C7
-	for <autofs@vger.kernel.org>; Wed, 21 Oct 2026 22:46:40 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-01.internal (MEProxy); Wed, 21 Oct 2026 22:46:40 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1792637200;
-	 x=1792723600; bh=b8JrLeZmohBXZxoZ8hIHhxCw9MvjJJNFtjwd/KPNiN4=; b=
-	SlzWuXRTtBF2qXe9jA6lVX3HJSnkinOlCatePQkTUUTQmyOpN6ZrpISLmgygl0Xe
-	Cc81PlfuVQ5J6LAm5cZgQNj9+765p4wfd3ua4iqIaNYC9dhjs7ATJn27lFXZLC/l
-	Vvy4qc6aoJKcQPUYoPgLJmhnZiYSx5Q/co/pEXf5/J/mFYrSk/D+T2A/K4ZyM8ev
-	WuVpJdkFbpbZHHCI6imGoWGp4HBDlGgOHBTgsCBKACPSVO7go1iqlhs8JUfle+Bp
-	66ruuiDLVU3oBtj351ArawJOSrWG40DTygF2Qd1BXE16XRqWLWSiel2q8ZHfGrUF
-	W+qIlmdg7QYnDBaCIO1Snw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1792637200; x=
-	1792723600; bh=b8JrLeZmohBXZxoZ8hIHhxCw9MvjJJNFtjwd/KPNiN4=; b=v
-	cwJoROojIG7D8Yiyo6V0wr9zJ2pRVIh71PjrTRn4b+6YL5sSTwTY+7P7EB9lwh+/
-	DgH1RyTg6cKTNYtiCzaE0wI9A8W6AgLUJlSEbk/fTD7zU/ZhLFKcyrIUauUH1y2A
-	QYZEiekK3gSDR90Ln0u6yMi+ZBrfsn7f0S9Tf2ywJHki9gbE14mIuX/gzivUAOdS
-	Cma0bCSSOLlye+1WSmxdjF1tiiG4XwCFqwaspRg21z7djT/2sh/3+f4JTt5+M8Kk
-	7NLNa4Qd2Imv5mq7Hteo5kGIGgnEE3sT/Kfi1+q9zWSBPXL8j1/3mZNR194Dwsrj
-	Gd2lcQjDOCSHGyYklAHJA==
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-07;
-	repo=github.com/dkim2wg/interop; date=2026-10-18; sw=lmtpprox;
-	action=sign d=themaw.net a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1792637200; d=themaw.net;
-	mf=PHJhdmVuQHRoZW1hdy5uZXQ+;
-	rt=PGF1dG9mc0B2Z2VyLmtlcm5lbC5vcmc+;
-	s=fm1:rsa-sha256:ZtgQ2+F7iTog84e+t8QXV6QTp/5ghWq/dKk7AbY52WDIQE6
-	dOLGwnb6q+8VPPVm6e6cYc1ZVGa2D5OgK9U1gvzaCV+RSv6UxINoApNeEX1Lm0t+
-	OKZga98pnY+8gGM0dHl/SSbHlxdrgYSEs3tDloUs9VlcoerzK0NLA6kp2chFNqtj
-	YF7sfrIqPKZ7ZtC+Q7WSDMKJZH9Xi+gpH6wLjrQKriOkA5OuFOAsxTV5HOARkB4D
-	aJnrbb3Io4WT1wVRIbussVwAU0ghGwvfik/s95OoLyRdch/zsG2/Ee2DVpPp7W3K
-	pY9xIyjGBiqCl6JSi+TEL8dazmz0dMaF/Qr62mA==;
-X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-07;
-	repo=github.com/dkim2wg/interop; date=2026-10-18; sw=lmtpprox;
-	action=mi-m=1; hc=13;
-	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
-	from,in-reply-to,message-id,mime-version,references,subject,to,
-	user-agent;
-Message-Instance: m=1; h=sha256:sdIH6ghOfrgTjW7puJZHRJZvIDPGFStH0tPZPwlN6IY=:b8JrLeZmohBXZxoZ8hIHhxCw9MvjJJNFtjwd/KPNiN4=;
-X-ME-Sender: <xms:D3nZanyYcTuh1SY80zX_Z3VtYIcnX1BBY-veSqerCBSt1doqa07t-g>
-    <xme:D3nZamOykI2EFyFkWfEQmZBOI0PChO7v-hJGRuVXaGDdRxXTVwMYKBZ7a3UWWH1ie
-    0wFBf-nNgac8cM40_1LQq8MsCTxPG02K1VsP2AXBzRBHIBmRQ>
-X-ME-Received: <xmr:D3nZamY4FEZChR6xmOHcfGReLpYofWK_kp1dlI4Zr0JZdcyX4NIsDRciIpTIpQMClhpxXEvmjwj0sZwKY-PCB50KB4IQmiDvalX4Nn6fX_Quu4q5gHoPw9a8dVE>
-X-ME-Proxy-Cause: dmFkZTFJl80OlkxtKrmLpLry8SB+s8EoAdfs4E9kpHOA5dqijSHh+7H/6Ivwl3c5UQ6DPU
-    41bDxgYzHplpsNoe8kwgDj4e1PKdBedBJV72Q4qA5wkBs8ODrr/9rPxc2zUUd+tnYjIwoT
-    ny8AmIaquX3FxGlVZ0wxUuvq9UzFvwMAZ6TafguFw1d36OZgJRVxv2eQRkdEHm1vVeHXFF
-    enmny/KR7qloN3pF57Mt7BDSlLtYw5ioXv2HFdYDF3laRnOa69O9gEnqzvDWKnOWL+0mIp
-    HHUGTUNCYNktwxR355RyWy/dARgku5E1Vam+5YCKNnxnJoQuSH4/+wb6ScnHEQ3FIY85MV
-    AAKXP32OP+0nQTkUZkb3NJlSRBIDpgT3rTLeB7cgMiC4kZHDuhR4f2GzJiGfZSvkpaVFOP
-    cdlLoxz0KKAOhQPEgAUXJIN8/Uf8MWooH7GFvNoWioufSIH7cfK76aZxRoHTb5pIC3fKB9
-    IrXPlTrMZ0z5RGiu/PDUyXn43KzDEn8Gye3Vf1cyrB0QyRIer9FCFe7jiOgcbOZGbFwpih
-    OXLMN/2oBAih4161kXuTVBxcIypuUYKmasZEXorhy9h6zgyfGvDLpZ909if6Ry7f6MKQQx
-    9xmQ6YWBNfFkmT4h1lMILcX2FXpoU1mRB3zuEOk4y7LUlL26+NtemFD+R7/Q
-X-ME-Proxy: <xmx:D3nZaorfBZiF8DSOEZG9VScubghi4xX2nS4sv7IJtC3MTIqGtPOUuw>
-    <xmx:D3nZajwe7dqGiUq7V8x9yzWXpiTmXTyOtphxRL3efFi5e2Oux14WPA>
-    <xmx:D3nZagKfQaQFfha9UVcQtj1T_EGDbTHRmsjFyN5gd1dg44283zuzVQ>
-    <xmx:D3nZal7I8GnVfCh0yAw6Y7uSPUxVAHpDmybX3LJZ4_ChcJOfw3cg5g>
-    <xmx:EHnZarKh3r5ZAsnP8-S-yuCxUC58gm0culffZA-oAHtI_8qarITqTtyZ>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 21 Oct 2026 22:46:34 -0400 (EDT)
-Message-ID: <22d41f2a5546d3bc90a1b3ad24ed3656588a854f.camel@themaw.net>
-Subject: Re: [PATCH 0/2] kernfs, autofs: fix pipe lock cycles through sysfs
- stores
-From: Ian Kent <raven@themaw.net>
-To: Tejun Heo <tj@kernel.org>, Krystian Kaniewski
- <krystianmkaniewski@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki"	
- <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Alexander Viro	
- <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara
-	 <jack@suse.cz>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra	
- <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Jens
- Axboe	 <axboe@kernel.dk>, driver-core@lists.linux.dev,
- autofs@vger.kernel.org, 	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, 
-	syzbot+002fb7b2d0bc53bf7e75@syzkaller.appspotmail.com
-Date: Thu, 22 Oct 2026 10:46:30 +0800
-In-Reply-To: <649966b83b39fcdd25e892fc3c6732a1@kernel.org>
-References: <6aa23178.f81106d8.2ab401.0006.GAE@google.com>
-	 <cover.1792577179.git.krystianmkaniewski@gmail.com>
-	 <649966b83b39fcdd25e892fc3c6732a1@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.60.2 (3.60.2-1.fc44app2) 
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=qCHc+pkS
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c263415982eso122820566b.0
+        for <autofs@vger.kernel.org>; Fri, 23 Oct 2026 07:05:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792764340; x=1793369140; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=BUJVWluZQW/qDMSCSzMsGJRAgytWrmfDDzAkl2tvmys=;
+        b=qCHc+pkSgGjiEkB+YGvSGYu0lSGIfzJY5pAXsLur0x09rjShylBp6MESq/gj/bUUeh
+         oyclnk95Q/C3POCVEUbNXFP4IqJXHSma/pajCGqeZyhCELztyVVVdT1KzN0/DiuOzsqL
+         9Y4ucHy3nxyJX8Jr5ptAo65RP1pHINUXa+j66SYOcgsW/4w3zWYQGyt0PS7DblO/Nj+F
+         6cR6Vpe8/G0OSomPI6w+IJAo/Vvsu/2p1/hH9GzjtiMu3Z4Skvxb6kisSSA+zwoRq2Uo
+         musg/d6JQTXlZ7Ewkk5COEiWzZeK+DPYSAkEQLuXc3Fsm1pX+6ug7EsLGn0NAOACqha8
+         +nVQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792764340; x=1793369140;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=BUJVWluZQW/qDMSCSzMsGJRAgytWrmfDDzAkl2tvmys=;
+        b=J4riWYx58q1oOwuEg1EG26qrHu1Fl1r5nnYhX+ylNeETq6KzZbbDbI0EkHQ7thu/bR
+         Va9Z3EajQWYq+46xtBj302TxRIdplvDNy6z5AnI4lRLAfS0j+x2ieR4HSQeh3YoepHhJ
+         Bsnq+y5yQSZF3iWOGYt9Wi3zhnPEHbKk+vZ7CjKIa9UHLAxXLApKcAKW2v9HpRyun+RA
+         4G3FDLFVXKyJOzQNyCdjXEYtAc1ctOEtXPryEiTER+oYktr13+iBHL65J0paligsbwss
+         XlKLOpVptFGleI1xhdUYdvTj1UytVndVhA33l9ESUkkKtuf5HhkGnrcImsft5KbJVJex
+         snLQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwOFtO0/9Gv1J1WqZ9nvPWxDaHP0xQAgLQlW4SGz7/or04CtwBkyET10io+17Q1wuHeD8xhxIk=@vger.kernel.org
+X-Gm-Message-State: AFq9FYLmm72ai2RtUvhqr1nM1FHTM8YWTo33j/jbhhLHju+V2ccV0Fys
+	L9mO4efa3g4tIn9Q58lrbovw4Ehr09Oxr9qpn6jZs3IjTOHDmBfv0iPh
+X-Gm-Gg: AYBFou0CadN6CjghodA/T4JqDIWS139WSg0gkVZXuIYJRdwnEo1WvGrrv11UK1GSvea
+	GVvKyqgIVOJBdwi+fD5WRMaL3S2XHkC9sAUEIAnNlyTvgAcROl2gOIy4E1DLb+TFtcbrfhYAPcR
+	tFOAD0ngLqUYddp0mMVz/DxYF2DXPMRbNalDzX1tgAYiDxkKifAiPAzbNkECHjCf7ln9OE6LZ2R
+	amuv/3TOUUPb5+dcieJuJOPKeLbuhN7JqOufOOGr+qZXQGAaijHh+zDOjrX7BBtfI5zf9dDNK2e
+	Fq6EAWRBfiblLX3oWLJE3LZXRoOqwsb7hSTSydCzqDOcWnxgjm2NIv7BdXQlm6ZjTGtRHKnrp65
+	O/iewNvYaOHK5Yb5cuZZdZGkdcsoewPHrha9rDzvAaYxI6QHuO0zaH/w7jBK+MtbXBVB7+k30FL
+	F8ppey1byBgrrmdDKBIJaTgOHgrsBwbEFax+wPodppdNy9xsq1blHJOxuSJIPGusMT59YZt0jT7
+	+Kt7MQ2GKcLZmcMMKNxD/AMUiXFv+FXa0J2U4NspNLCqW2GOYupa+jw2u+kFJXRaCGtLQ6vf3uA
+	DS8JNtNamDDl9w6GEb+66BgSWSF1V11yCpcFIbf0sGLpWR6BiZ1fXuRBZ7ncGBSONNiZRPFsyjV
+	SlyN0PBiyayZTEF+lD9MKZrT+ADqtCbdWFIalx58mTvdTHWp/qNsOmV1fNV0Gx8ybYuNgBS5t+f
+	A5X5CHddGBg1YWRgs=
+X-Received: by 2002:a17:907:930a:b0:c41:30be:4f84 with SMTP id a640c23a62f3a-c46a90ae916mr376211766b.9.1792764340190;
+        Fri, 23 Oct 2026 07:05:40 -0700 (PDT)
+Received: from [192.168.100.100] (87-205-15-91.static.ip.netia.com.pl. [87.205.15.91])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c46b8ba181esm4707666b.25.2026.10.23.07.05.38
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 23 Oct 2026 07:05:39 -0700 (PDT)
+Message-ID: <7a212208-74f2-4d79-8ca2-a1502d0e0a1c@gmail.com>
+Date: Fri, 23 Oct 2026 16:05:38 +0200
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Post: <mailto:autofs@vger.kernel.org>
@@ -139,48 +94,120 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:autofs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/2] kernfs, autofs: fix pipe lock cycles through sysfs
+ stores
+To: Ian Kent <raven@themaw.net>, Tejun Heo <tj@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Danilo Krummrich
+ <dakr@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>,
+ Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>,
+ driver-core@lists.linux.dev, autofs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org,
+ syzbot+002fb7b2d0bc53bf7e75@syzkaller.appspotmail.com
+References: <6aa23178.f81106d8.2ab401.0006.GAE@google.com>
+ <cover.1792577179.git.krystianmkaniewski@gmail.com>
+ <649966b83b39fcdd25e892fc3c6732a1@kernel.org>
+ <22d41f2a5546d3bc90a1b3ad24ed3656588a854f.camel@themaw.net>
+Content-Language: en-US
+From: Krystian Kaniewski <krystianmkaniewski@gmail.com>
+In-Reply-To: <22d41f2a5546d3bc90a1b3ad24ed3656588a854f.camel@themaw.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, 2026-10-21 at 11:48 -1000, Tejun Heo wrote:
-> Hello, Krystian.
->=20
-> On Wed, Oct 21, 2026 at 02:51:48PM +0200, Krystian Kaniewski wrote:
-> > syzbot reports a lockdep cycle &pipe->mutex --> &of->mutex -->
-> > &sbi->pipe_mutex. splice holds a pipe mutex while it calls the
-> > write or
-> > read handler of a kernfs file, kernfs takes of->mutex there, and a
-> > write
-> > to /sys/power/resume looks up a path that can make autofs write a
-> > request
-> > into its daemon pipe and wait for the daemon.
->=20
-> This is an extremely convoluted case that isn't going to happen in
-> any
-> realistic scenario, and it doesn't make sense to change the locking
-> scheme
-> for it. Can we just disallow splice on /sys/power/resume instead?
+Hi Tejun, Ian,
 
-I agree but it might not be as simple as disallowing that path.
+On 10/22/26 04:46, Ian Kent wrote:
+> On Wed, 2026-10-21 at 11:48 -1000, Tejun Heo wrote:
+>> it doesn't make sense to change the locking scheme for it.
+>> Can we just disallow splice on /sys/power/resume instead?
 
-Not only is the description hard to follow the example is flawed
-because there should not be a mount callback on anything that's
-not an empty directory or an autofs trigger mount (and the above
-should be able to be either (systemd's /proc/sys/fs/binfmt_misc
-is an example of an autofs trigger mount).
+That would address the direct case, but it would not make this report
+go away. The lockdep report combines two separate operations.
 
-I mostly can't grok the reproducers for things like this so a
-complicated description makes it so much harder to come up with
-a sensible solution.
+First, the reproducer splices a pipe into the cgroup v1 devices.deny
+file. This records:
 
-The other possibility I was thinking about when I saw that report
-is to disallow file systems that don't make sense for automount.
+        &pipe->mutex -> &of->mutex
 
-That would take some thought though and isn't entirely clear for
-kernfs since it's used by other file systems that may occasionally
-need to automount something at some point.
+It later uses a normal write() to /sys/power/resume. That records:
 
-OTOH, if the problem description could be cleaned up, and
-simplified, I wouldn't be entirely against the change but still
-wouldn't much like it. That's purely because I've always been in
-favor of defensing programming even for cases that are unlikely.
+        &of->mutex -> &sbi->pipe_mutex -> &pipe->mutex
 
-Ian
+There is no splice into /sys/power/resume in the reported sequence.
+Disabling splice on that file would prevent some direct deadlock
+cases, but the first edge of this report would still come from
+devices.deny.
+
+A complete restriction for this attribute would also have to cover
+both splice directions. With an O_RDWR open, a splice read takes the
+output pipe mutex before the same of->mutex. Another thread can write
+through the same open and reach autofs in the opposite order.
+
+Kernfs splice support is established behavior. Commit f2d6c2708bd8
+("kernfs: wire up ->splice_read and ->splice_write") explicitly
+restored it in v5.11 after the VFS stopped providing the implicit
+fallback. The pipe has been locked across ->write_iter() since 2014.
+
+I agree that changing serialization for every regular sysfs store is
+too broad for this case. Before preparing a v2, I would like to
+clarify the intended scope.
+
+> Not only is the description hard to follow the example is flawed
+
+You are right that the cover letter was hard to follow. I should have
+described the two operations separately. The automount itself uses the
+normal empty directory case.
+
+The reproducer creates a detached indirect autofs mount with its own
+daemon pipe. It changes its current directory to the root of that
+mount and moves out of the daemon process group. It then writes the
+relative name "0x0000000004000921" to /sys/power/resume.
+
+resume_store() calls lookup_bdev() on that string before trying to
+parse it as a device number. The pathname lookup therefore starts in
+the autofs root. The new negative name triggers the normal mount
+request for an empty indirect autofs directory.
+
+The dentry whose ->d_automount callback runs belongs to autofs, not
+to sysfs. There is no autofs mount on top of kernfs in this
+reproducer. Kernfs is involved only because resume_store() starts the
+pathname lookup.
+
+The change which made this path possible is 1e8c813b083c ("PM:
+hibernate: don't use early_lookup_bdev in resume_store"). It replaced
+early_lookup_bdev() with the normal pathname lookup in v6.5. That is
+what made autofs reachable from resume_store().
+
+> The other possibility I was thinking about when I saw that report
+> is to disallow file systems that don't make sense for automount.
+
+I may be misunderstanding this suggestion. In this reproducer, the
+filesystem which owns the automount dentry is autofs. A restriction
+based on the filesystem owning that dentry would therefore see autofs,
+not kernfs.
+
+The lookup from a sysfs store is also not unique to
+/sys/power/resume. For example, with CONFIG_BCACHE=y,
+sys/fs/bcache/register also resolves a user supplied pathname.
+
+The exact reproducer records the lockdep edges with different pipes
+and different open files. It does not deadlock on those mutex
+instances. After sending the request, it waits killably for a daemon
+reply that never arrives. Related setups can deadlock when the daemon
+pipe itself participates in splice or tee.
+
+Given these two separate paths, did you intend to prevent only direct
+splice operations on /sys/power/resume even though the reported class
+cycle would remain, or should a replacement also eliminate the
+lockdep report?
+
+A per-attribute splice restriction alone cannot do both. If this does
+not justify new kernfs infrastructure, I can leave it alone.
+
+Thanks,
+-- 
+Krystian Kaniewski
