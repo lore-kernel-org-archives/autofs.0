@@ -1,90 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793062683;
-	b=Jrm53782+d1rq/SwNNKDoreC4p3lNTCzDr/3TJTk+Mp8OfCIiV3kTRxxVQJEOLYplTfT
-	 1Y75TKoTTt/wZWQzaNvn5ByoB56/8aKpYTsCVi/ER7OkPdKyyOI0NrEV940o/xidO8Jvs
-	 sEbdOZNoM9SsJ66j6FjMsCHP6s+k71nCdHnzA/gmqnPZR3uD3TWf/Gj6QPMdbxTYTqdBI
-	 4aU+DjLu5pT7QyZy7zAEplWdHSgGyXnOaVpiHe9kgDAYXRy8RCqWfefP3AGKFFJNO4c1b
-	 S9JFcLQLU5O0EAc943t1ON4kAHxLDB4XgB2SIbW64TVrY71+cXTtGC3MlAJB2a2jORw==
+	t=1793063215;
+	b=n5K9Bzey8wyKlto0beG18h9TCrIiLLpf9XEC8fc/58xjEP5UXHXx6mwkszfm7ki0dZMV
+	 zt+RCWOOmJ4+3iZZ16TGwPc4WW/tztENzXZtRa+aCI6BHYJxxi4eaXenRWvuHY+t8NxZt
+	 hG1d9U4Bt2zesfApyaqD2vH6TWGfxZW3z/N16vAq434RRgDgiRcbKRZmk7ZSHimbhyree
+	 RqChrN6fkmFIn7mQUlRjIWQhH1dpNBcnOTHmoANXo9tdq6F0/s6ThvQgWfUdyDs0nu2/x
+	 GmnZg+qqECojtzJCXJDeN5MA9DXdknVN8on6fFtjH4xfEepoO486f94zWS6255iF/ZA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793062683;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793063215;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
 	 Content-Language:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=PixEuIlz0J326DRKLzRZTRCRckMWEmO8LrFWZwm2Ojs=;
-	b=c+0orKKVdrsUj1wsnzUFDNhTYfYUdflgQxBPr/YD8LpxqTkHB0PBZBnYKukGC/EoyC8c
-	 09YiNGf7Orl4lvMeGns/X/wgc/6UEQhJ4D4UfaIKlyE7FRX4opLZVvSiU+UONzZijjD6u
-	 WGBtzYsn5XMp1cckKN+fRf5Oay3JAYiAKBkSZE2rf4JiqBQiJdWu0EYXWERfwTvqvSSi8
-	 fOwhLlmjYlP4yWsqnbyWp8oZhcn7z4//UWu3vEt4l2Ff2DFyT+aeUt4Og/fHuA21MPV2F
-	 BxvgkXY+ieys6K1BHfeFcW3JP+w8g/hefvaPQaWnRfP4dvzB20lxdK0YmLW07+g1KQg==
+	bh=aJI0hb4/E//vLxc2EVc1E27ZXseuwybs0SN1EQUknec=;
+	b=3481r8tzLXB4O2FLrA3BKjuLVV2QbPZnMmuFsZSubFvvt5y39VJjSfKGGzMvN1Bj2KUa
+	 1XWE1AnOV0kVI9xQPn+EWO+9abx/04jZDlRwiPXvpKEoYa0qAbmU/b4R2Nqtakp1/WAJ9
+	 QVPTQ3chnhSh27H/YqHGKdTE1IXbU0/CtQrTrwNFu43sOgPpuGmoVD2yxHt+LcUKMCL/z
+	 vv/8neub57JmVJfygCHRdFg7Io1cZpXbuRlscl2hTmmWcJo6wilo/Q7V1CLaim4ZZT8uS
+	 E2Pzo30MTDvgdPQm71l6HTsiyS75WlKlTseGK12WuPpY6+rdeJf9ZzJFR119rCyo81g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=b+JD2N5+;
-	arc=none smtp.remote-ip=209.85.218.43
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=LTXvgnV0;
+	arc=none smtp.remote-ip=209.85.218.48
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE4A606A31B
-	for <autofs@vger.kernel.org>; Tue, 27 Oct 2026 00:57:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DE4A606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E0D9606A31F
+	for <autofs@vger.kernel.org>; Tue, 27 Oct 2026 01:06:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E0D9606A31F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=b+JD2N5+
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c4322d310e7so533778166b.0
-        for <autofs@vger.kernel.org>; Mon, 26 Oct 2026 17:57:58 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=LTXvgnV0
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c46822eefb6so471224566b.2
+        for <autofs@vger.kernel.org>; Mon, 26 Oct 2026 18:06:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1793062677; x=1793667477; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1793063209; x=1793668009; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:in-reply-to:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=PixEuIlz0J326DRKLzRZTRCRckMWEmO8LrFWZwm2Ojs=;
-        b=b+JD2N5+rYVooj8Ej/IvUFc1dN/wiaOUFruTy9kN63mrAIfXTfvhO71wV9X5nkq2PD
-         wRjFzdbP1cL2mMyjlvzi7fQlP0tbFg82kYFbI00W6Q8xvpbRXz1boe0eAKHHfpEs07Hw
-         TLSFRbETHdW7qxLZHEaTl0E6zFQed0As0r6q/xXozeJkVNdjH5M5ADoRsfD8xFB6jH3w
-         zafLdnnkjqoYX9fTPaC6r2U1J1AW+bS4Fbt3cCsbY7EeivWpGTkNjNFqy90Gmec7L7+K
-         nakS23YW4EcihM5dz8PR4wy3mHfkMFPrqKhRq7o7C+2k0BLyT64M2cju3d09MUD2c7yE
-         6mvg==
+        bh=aJI0hb4/E//vLxc2EVc1E27ZXseuwybs0SN1EQUknec=;
+        b=LTXvgnV0kKaKCac/NWTDNj/xLVRA12SXR8oBYGVw7hB46ZT57gB4fZwYtR5nCCblkS
+         peP+RjAszOk0dm1T6N+uNlAtD5zw0eE2lahff023hj5G//C919I++TvXOZ3DarXuZCiY
+         CdA2bEl2sIvMMKXBmf+rpvs6JbfEPu5km1R+tIVnkFUnKRVdcKmH+9TFh7Z3Gp5SZGks
+         0xu37F04qrnh8fsQxonydlDd+TPd3e3MYXPMIg4lN2SvnxV9ntsb1E0EcMW00ZocSO6d
+         tuaikwD10/VduwJNndzh735UGS98Jmu+qk9VwbMuzMXhmtJEuPN81j0LyK1pZmjCEjSj
+         z4kw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793062677; x=1793667477;
+        d=1e100.net; s=20260707; t=1793063209; x=1793668009;
         h=content-transfer-encoding:content-type:in-reply-to:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=PixEuIlz0J326DRKLzRZTRCRckMWEmO8LrFWZwm2Ojs=;
-        b=luCgSdY8Ox+lyVGcPYeWUdxKO7WU9N++gTvKQWG6btwXZ6gfwWyuZk57ArQCBx3fqd
-         e5CCtL/5mtCmJEFydoha+Av/mK4ajpLXdkHPcSAB2VZH2QPj4BiWSt0BJQiUPU3070N+
-         rUe2imVVJEzPs5ZpwmuwOHGfH1vWQqCL064xpDFomXwP2oJizBGFkpgWi6T9TiOeM4s6
-         yIHz90pIxtQDfso2Opgup3oa4kqxeg2zA5qZjVkFo+ImCiAyKM19kDvAmN5CcdX5AmNL
-         iMSDqmccEDJAtTpZKadP32WOCfbDLQ3fLMFKRLejdKHWaSPJE2HZPeQhSrOoHhDnMkwO
-         QhUQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzTOnDGA1imBfXfIfzAXJ6opDhPK17QW1idCpKAdTF00O2Nm1cWLfFpnOuJ7PMQHi23Tex+6zQ=@vger.kernel.org
-X-Gm-Message-State: AFq9FYIuFhsgw5puBzNWIIyEVtlhjjsxYB+Psj8FzHcPcV5G1EvoVxdv
-	uurcGAeI1q9p3+8X3M961Svw+4lC6OWfwbC73uMemCLsKqejbD/5p6IN
-X-Gm-Gg: AYBFou3Z7FhSb6ePcAlglVLGvOB2uTewUR5MEgEyF+Cu8UoZMMdFtoTYkAh3AqpG0Ch
-	+pUEGPBJHlEtSSkYnILBZYM1jpedLqaFxqDCC/L6sgGpRF7BSp2FmqY73ked+jnyClNXsFRKup8
-	6lLWHKYb4TIyuc+NIrt0cJXyRzPAzq9GqWtOEsAmCU788Fx9QWV34UI+o3/KR39/njc8v9uBMu8
-	n/FmIX8Afz+fTmyTusCXIQWk1hEreZHHEqfK6fQSYJYazXDthg1iLu5OesNiNxj3CyXKLnHlmo0
-	+kMbOSrG3AaCUJq9CpWEqkNHL4V6H8RuWLzQRjCTtzC1bmuWu2ZFWW2clhLoPgWKtT3SyuR3Jvv
-	8IPk0rP9kHw0IGa6cKgjbjWMf2q6HsT5hdWMLOzg6MNuWI8WE7+oDAiPFG8zV32G7WksL/j5VHU
-	jOrSpR8I5l+AONBjSQfx+wKhz0ietz0YQPK6DRcfWlBL0/EAo4ZxRjOa0mli9wsEjj3mOOtb8dc
-	649YWp8F2CTCX0xoCEtU+A/lW258Rw9EMThew0V4/aN3ta87rJ08gz6RvWjqHPwm3hCO7TWN7z5
-	WuJ1RKvd1SFjBL7NsmnQsFFc6x2hjQBkyvNlMQGbeL+I8MTO6CE+81DUyNoGeuDyyP+yY8LuPlE
-	2btBYIQRJbgphMJB095AsSeUZUbb6W7YFvRYMx7eRb0tpPGNx2xsLiuR2gUUnQjhIEcjDE3ZgrK
-	DW2PV9gwsuACSfHvw=
-X-Received: by 2002:a17:906:f593:b0:c31:8984:7fad with SMTP id a640c23a62f3a-c46bddf6451mr917653766b.15.1793062676398;
-        Mon, 26 Oct 2026 17:57:56 -0700 (PDT)
+        bh=aJI0hb4/E//vLxc2EVc1E27ZXseuwybs0SN1EQUknec=;
+        b=dHiTaKKmOZzYYTRfH0mXeenXbXpi3sorGimQNJUOsv9paiLWi66kCklPh2MBhOz5Lt
+         3jGdeS08VxWNe4iQuTxslNFKLs1RMPGPL+AagsPt16oZ22EJTQi8/zW8R/tcZrt/d1b+
+         g5PLbj1XKLgYpTjik6NsZFOaYlIAX2+yxxtd8mZQPvZdunk3B0nvpluxOHrF3A//r3oV
+         iw4JuaPfqAIC8UBM6oWd1boUF6AfYRf6R0tm9LOjXEgDG7zYM0Bw5qFd+3kSoV8QnSbQ
+         8WCT77UNKtK60A6PrxrNnuXvSVyu6+YwLQ+zhzqr/Vph/0Ml3/TYgoiePyL0WolDJps9
+         bH2Q==
+X-Forwarded-Encrypted: i=1; AKwUvBwlRUawZ4HYuOsY0QUYT8i84kfWQTNfa1e+qZGibr707Un3ZLbuMTHtSFY+yb7gpk3ePi5teGc=@vger.kernel.org
+X-Gm-Message-State: AFq9FYJAfG8K8Dde18LMzfojLf4vRCmboUPBa1b2npWFFKegoJulxsCK
+	/p0jQk6B1G2hdwhH8n9gWDTeQfKo9S9cM4HD4TS/biybr9Qv+mkmO7oX
+X-Gm-Gg: AYBFou1KM1WFocsIMwAvHzCe8LsJsHjTEtYEPGVrUmbfDhVMdzvvAYaaMDFE9/8Qm1l
+	TGeqe45iB8eJuRZW19pNsYcuO28Ub5wtZhxF3U7lfnWuu1wUUovFsFMLqDa0CO4jw85/dqKRT9o
+	nhp0IUGxTCQOFd+KEsJz4f0Al0JOMEx2esA+lm7nBb1gS4AvMI75svEA7Xi5GaqNh8IT/pxVDTR
+	lZ3rzv0Kv87mfVepYGQugSQpOz7zbsgdJVuRpK6tztFhr2+yzSTtXSj01OSMsh7mX53knmzSjBU
+	0c/rYmRIG5TIunQj9CN+dFhOGedr4Z0Oxq9tnrWoaACdpJ+Iym8H4/dHiE2mOpx3w4RztfY4Th2
+	Dej6FIWqyAaq6wA9niTOnIh8U4GtpXjCBdiVK1dbFYh6UaokWqTdlMpDuptDw27p/7P7RFOeD4y
+	wAiRoMD85/fWQUgkU6yQmUgl6OYyMHJkIjZR2OpHR+aerGf2R6nHw2i5bZThtwOLnPLQS4mNy7F
+	a5b9WodmB5V4p4W8sptik+Ddx7hTh7xrTOGeyqztVR9zX2n5/Bt8hXv9mwqlhkyP1+fxs9Ry2qn
+	938cd0nG+LRTm5EAmBwJ4Fk4Hvn47b8Ex0Jgv4OKd/XnuA/Y1r8UfL/UR+HRKRGowRzZ7meFGsx
+	mh1hW1H+hy+3YG59MDQuCQOSO9KDJ9SyiaXMZxw6XjOPLMlypEPp1LnppVDh0kuS0lpXBD9kjbk
+	UcutqMd3Iku0lrBHE=
+X-Received: by 2002:a17:907:160b:b0:c46:6a50:40b7 with SMTP id a640c23a62f3a-c46bdd690d3mr894395066b.10.1793063208643;
+        Mon, 26 Oct 2026 18:06:48 -0700 (PDT)
 Received: from [192.168.100.100] (87-205-15-91.static.ip.netia.com.pl. [87.205.15.91])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b44595df8fsm4283637a12.11.2026.10.26.17.57.55
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c46bd4e7c94sm373434066b.27.2026.10.26.18.06.47
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 26 Oct 2026 17:57:56 -0700 (PDT)
-Message-ID: <083c2bb0-85b6-480e-afcb-bd2f386f2ddd@gmail.com>
-Date: Tue, 27 Oct 2026 01:57:54 +0100
+        Mon, 26 Oct 2026 18:06:48 -0700 (PDT)
+Message-ID: <7c8d96bf-368d-4272-8cd1-94740a2e4a84@gmail.com>
+Date: Tue, 27 Oct 2026 02:06:47 +0100
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Post: <mailto:autofs@vger.kernel.org>
@@ -119,73 +119,18 @@ In-Reply-To: <4f56c93a9fc5fee152364974773df0a319c84af9.camel@themaw.net>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Ian,
+One additional detail I missed in my previous reply. I reproduced the
+warning on the unmodified kernel at commit:
 
-On Tue, 2026-10-27 at 07:11 +0800, Ian Kent wrote:
-> Commit 1e8c813b083c ("PM: hibernate: don't use early_lookup_bdev
-> in resume_store") looks like it's been around for a while so I
-> assume the reproducer should work on 7.2.12?
+        93f51579e7df248780214094418f205253383cc5
 
-Yes. That commit entered v6.5-rc1, so 7.2.12 contains the relevant
-code.
+Exact kernel version:
 
-I used the unmodified C reproducer linked from the syzbot report:
+        7.3.0-rc4-g93f51579e7df #1
 
-https://syzkaller.appspot.com/text?tag=ReproC&x=11c0f4c9580000
-
-I also used the configuration provided with the report:
-
-https://syzkaller.appspot.com/text?tag=KernelConfig&x=7d012d9c67977ee4
-
-> What should I expect, a hang, it doesn't.
-
-A permanent hang is not expected. The result to look for is this
-lockdep warning in dmesg:
-
-        WARNING: possible circular locking dependency detected
-        ...
-        &pipe->mutex --> &of->mutex --> &sbi->pipe_mutex
-
-The reproducer records the first dependency by splicing into the
-cgroup v1 devices.deny file. It records the opposite dependencies
-through a normal write to /sys/power/resume. These operations use
-different lock instances, so the exact reproducer reports a possible
-cycle rather than deadlocking.
-
-The write waits for an autofs daemon that never replies, but the C
-wrapper kills the blocked child after five seconds and starts another
-iteration. In my test the warning appeared in the first iteration.
-
-The test needs lockdep and CONFIG_PROVE_LOCKING, the cgroup v1 devices
-controller, autofs, and working hibernation support. It must also run
-as root. Without lockdep, the program can appear to do nothing useful.
-
-> Also it looks to me like the reproducer is trying exploit an
-> invalid request similar to what I described earlier
-
-Whether the string identifies a usable resume device is separate from
-the autofs request. resume_store() first passes it to lookup_bdev(),
-which performs a pathname lookup before the numeric fallback.
-
-The reproducer changes its current directory to the root of a detached
-indirect autofs mount. It then opens /sys/power/resume using an
-absolute path and writes the relative name
-"0x0000000004000921".
-
-The resulting lookup is therefore:
-
-        <autofs root>/0x0000000004000921
-
-For autofs, this is an ordinary lookup of a new immediate child of the
-indirect mount root, so it is a normal mount trigger. There is no
-autofs mount under /sys/power.
-
-In parallel, I am preparing a revised patch following Tejun's
-suggestion. It disables splice for writable opens of
-/sys/power/resume and gives its of->mutex a separate lockdep class.
-
-If you send your autofs change, I can run the same reproducer against
-it and check both the request and the lockdep warning.
+I ran it under QEMU TCG using the configuration supplied by syzbot.
+Both the unmodified C reproducer and the original syz reproducer
+reported the same lockdep cycle.
 
 Thanks,
 Krystian
