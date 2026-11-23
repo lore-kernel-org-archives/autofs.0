@@ -1,123 +1,130 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=103.168.172.152
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.12.124.146
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795389690;
-	b=ssdmaOWlohm2BakZt7tEwFNNx3AaPpVCAWX1MJK637dHxY/m96vz4bbdVUBoLqcY58Y+
-	 zYkPXCFouyI3w8jQRf0FVzwMlcw7b+djk8Lqp2sKGrkfMUUiQ1ZnWnk11KFBPJVrjT52s
-	 dL1ffW3fynQdKb+6VFKZsC04xOyjJezuGz6gpYVmZ1XYfo2U0B5fPlPYtAWzinhxt7GAo
-	 GGjC/a3Nq6BOBSCBeQliEr42a0PuYs43faDyNDxNQ6QgiJ9235NZarwFaQH/0kiXLRiLl
-	 A0ZwFWZGeICF7ormbZgroXbMAyuZr0bZbogB9EIBpWdNEBrr3TxR3I4R7CUMwb4frWw==
+	t=1795392084;
+	b=Hyz393WAmHiAaX6LcWGh4/ucsZyPGL9Fk1vk17KArOLQpUEvTdm36tGWDCYoycbWQ55L
+	 KlQABr07RywNDbw2pZ3h3mEBW8Nsak0+rRmd8zf0XEewmTSnYgaqg96h6ZRqSJ5VGHJyL
+	 TV1g478rECyswgGKWzu4bvaw9Bc6RqCnC4T1MK+CV3q58M+h3JrHlJWxD6Lks5K+YNVK2
+	 QqEL56qBX2wUQqaPaBYEzwOt4kHr3hlATa6KvbvZyaLYggC31jXbmPqHPrY6oDHBYivr3
+	 XPYeh/H7QFsE/NQ/uhxbSxkoOmgpR+C5ajW93Ag6/BTBLJqkD7I67eX4bazbRLPML7g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795389690;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795392084;
 	h=DMARC-Filter:Received:Received:DKIM-Signature:DKIM-Signature:
 	 X-DKIM2-Info:DKIM2-Signature:X-DKIM2-Info:Message-Instance:
 	 X-ME-Sender:X-ME-Received:X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:
 	 Received:Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
 	 Autocrypt:Content-Type:Content-Transfer-Encoding:User-Agent:
 	 MIME-Version;
-	bh=4Jm/lGKeQugnZ02F2FLhJ8t1tsu+nSNw64RY5DHTJk8=;
-	b=vtECJPBte6alDZuNOiJBM+WhJAywlst0eNVJY2yKA22yU1IUVAA5efaVbCKYoijf/UOr
-	 HHUQLxBibMXqPZGt0WmhOOExc5w9SQfXoh/4vVXJ/Uw4Qhq/yks56YBzFwXgIbLgeG1y0
-	 ShdDsYjhQsMeet6MIF2tYvrYSUMLAOZHiuAUTgxXdgSnuw+NGZb9N7HWlzE6WmjvKtd9x
-	 KSYGXGH45efCPe4PpCHxPy17nJaXBgU6hTsGDPmVJ82HaKp6Dwy6QX+fDouG3M/siCwv0
-	 2aD5cjzkr4LqNBGp0yDxy8OAaYAocFfEGgxao2ON9dkG/NGFT2vHdRRnNVwJRSbeDKg==
+	bh=NsU8S25WYE8UtJMOtwZ8kYjXiSr0SQrEMevqcLIRN+I=;
+	b=Gef6acoFQ4JOkjbTXoIKLJ0YDOV4vPJsIcphbegwewHuSB0J/2MoNPGprINvmP4fjN/i
+	 6bxBlF2lG5+8nZ93ugZNv8Rdinjh8Phgij/M+LW8MNNbEL8AZv6Twyk+31GV6kxkN2cjO
+	 i7sOOM4lUAi/E1HHYfq6PZQCKZgqGOrIXydjV4udpqG4aubd7TbtHM30ZkFN3gfiQ1Ctr
+	 hXMQNT/qt2X72zexuWi4lvwx9X1GDrK9eI39XPxrkC+SL/ZXeTUUi1qojySTnKzqogdnP
+	 MBzurGnDb7UP2Jif5iPK7zjnrzJEkwsOvx4TznxWxLG+w1+hNF02ySMwZdcDzyx2H0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=themaw.net;
 	spf=pass smtp.mailfrom=themaw.net;
-	dkim=pass header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm2 header.b=XpQppst7;
-	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=QB+9nEsF;
-	arc=none smtp.remote-ip=103.168.172.152
-Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
+	dkim=pass header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm2 header.b=pEABzcCq;
+	dkim=pass header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=PHxTBtS7;
+	arc=none smtp.remote-ip=202.12.124.146
+Received: from fout-b3-smtp.messagingengine.com (fout-b3-smtp.messagingengine.com [202.12.124.146])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80AA6606A31A
-	for <autofs@vger.kernel.org>; Sun, 22 Nov 2026 23:21:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 80AA6606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71766606A320
+	for <autofs@vger.kernel.org>; Mon, 23 Nov 2026 00:01:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 71766606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm2 header.b=XpQppst7;
-	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=QB+9nEsF
-Received: from phl-compute-09.internal (phl-compute-09.internal [10.202.2.49])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 7BB72140003C
-	for <autofs@vger.kernel.org>; Sun, 22 Nov 2026 18:21:28 -0500 (EST)
+	dkim=pass (2048-bit key, unprotected) header.d=themaw.net header.i=@themaw.net header.a=rsa-sha256 header.s=fm2 header.b=pEABzcCq;
+	dkim=pass (2048-bit key, unprotected) header.d=messagingengine.com header.i=@messagingengine.com header.a=rsa-sha256 header.s=fm3 header.b=PHxTBtS7
+Received: from phl-compute-11.internal (phl-compute-11.internal [10.202.2.51])
+	by mailfout.stl.internal (Postfix) with ESMTP id CB5161D0042D
+	for <autofs@vger.kernel.org>; Sun, 22 Nov 2026 19:01:22 -0500 (EST)
 Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-09.internal (MEProxy); Sun, 22 Nov 2026 18:21:28 -0500
+  by phl-compute-11.internal (MEProxy); Sun, 22 Nov 2026 19:01:22 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:cc:content-transfer-encoding:content-type:content-type:date
 	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1795389688;
-	 x=1795476088; bh=4Jm/lGKeQugnZ02F2FLhJ8t1tsu+nSNw64RY5DHTJk8=; b=
-	XpQppst7+xdw0O+TNi/VrehSMkvEFwT7yq/dPVLIqA9OolUUqGOPUwyZOSeXyMQQ
-	5L3NAvyaCpdl0xENn9gW9jJ4oWlopnKEUettFjqfMDzT6T6t5GWC5CfRDLFYqf+5
-	i/vdjIBJS6QBDO/L8Np9hJ1h1HFtKBmvG7zydL/SqHC5NhJzpTtEZ+N5aZdwDNFv
-	uKm25dGaM8qhYEzQW4+2T4SEfvuyUx1GnnDpxgp51Z7V567QJ/+KMcEiJP3vPUtD
-	wR1WLqMWA3HRLcxOQikcTsiYiiWPuIoSZVZjfjisCtVHTBiAghDIdzQbSDGU2mjP
-	ivhnGx70fjenlZlXjgk1fg==
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1795392080;
+	 x=1795478480; bh=NsU8S25WYE8UtJMOtwZ8kYjXiSr0SQrEMevqcLIRN+I=; b=
+	pEABzcCqEMrWBZK/MGW+JXE1SF4llxtz6K0WFTaVf7lBeEST1WqKP4viBrZ+FBQ5
+	OoGbU3uFg71YRHlqR8nlpdyymtnqRmdpbd41v0R/RC/s9qAWmh/Sz6SK3Zyt1xu+
+	num0kOFdus1LCt/Qz6d3xKnamBs8dAL4YJTxcOpOA0jfBWvlDtyy+ijC9Am9NGl2
+	ftSbTtsQAx/mjsEwKene6BYZxbp1fCGySpSg737Ct1AXpKl8V7ExKaLqqHc4Vqhq
+	RZjBX2CqvTAni8Px6XSPGqoECwIRYa+XcSkcd1jCx1Q3VGwVKKiZszfL7CsOxA1y
+	AMxsopm0fZzR1pg1umfARA==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:content-type:date:date:feedback-id:feedback-id
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1795389688; x=
-	1795476088; bh=4Jm/lGKeQugnZ02F2FLhJ8t1tsu+nSNw64RY5DHTJk8=; b=Q
-	B+9nEsF0W3EKkVL/JcBArGWqDhjPlpf9YcYVTWFD9g62xt3x40SEAzTqVuTVZcN/
-	qaLD5TuHqTXz1AN19Em3HY7mD2yMVvc+YOhnkM6CP2g7UMkUDU3P4i7H7aytkfMr
-	ZQfTHu4wSfa9lYYqND5KiKVt3Pg0NRWXE0r1HhKxFWh+1pO+CeTSM2zItdNlgo5F
-	/ccFHJRgWA74twQMFNonDO229sgKIhBapJ4OiQ93n7Hm7WnSfouHpwYiaTtrH/Tl
-	pOwcVeRvFGBGns1OVmosRxiyF1O0EbozD2hLKpALnTtpzAudmbqu47N7+FNg0xlG
-	pjLcu+VgHSI/cdQAXBduQ==
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1795392080; x=
+	1795478480; bh=NsU8S25WYE8UtJMOtwZ8kYjXiSr0SQrEMevqcLIRN+I=; b=P
+	HxTBtS7+r1ZjM97+76OUoaYV4QECjjdf074151OScNkam4wyWMw8j3E0qeD0kngH
+	oRoUrx4hPN691Ms5uVPx5eIfJ46PZt829HkY/vtQ/hCZuPyRWX25MODy3oJhlvvI
+	JX+e+lUnjBvUZZUJ/pdOKLeZX/UevF4/zMZcCAef4MJzcsZ9wIGxkHly0wp1R8Na
+	lz7eEDYq9AErvlSnlKIJp3mx4wPTAsv/pWyutSnCn8dRmiUHb4mDXG+zU7a72x/g
+	GXoWAyp5PYfQ1JKHLoKq8tl0OZ7BWTvBIzGUcMvj3nb1kcjJZC8+IMJSoXGVD9Bd
+	U113JnCLN9HOyogYni2OA==
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
 	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
 	action=sign d=themaw.net a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1795389688; d=themaw.net;
+DKIM2-Signature: i=1; m=1; t=1795392080; d=themaw.net;
 	mf=PHJhdmVuQHRoZW1hdy5uZXQ+;
 	rt=PGF1dG9mc0B2Z2VyLmtlcm5lbC5vcmc+;
-	s=fm2:rsa-sha256:urmekiomdH3NqmeZzSTR0z9gZ4haiXDr74ycLLqrHtEBRt+
-	dMek/3NKKRfLWyW15b9bliBt78ELCqB2DrMZJX1mJThKcepkoI8fGditNGIj6GyT
-	EZN3vCKPdHYhPaEraWu/iiu1kzYLjFXMLfScqwH3LLkF44USw+ZsGJAcOn0Cf+Ev
-	6aeGUOfK+guf5oSSa9P80xG7Q54nkGf1Y2Yhvnik9uAVsNdSWNReJ8SzMGnAP0hG
-	BanCBGIJ9DHos9zelxX2PIDC8Hlq29xl/JCP8rvhOqzkJXnp0YmaWnUr9aAFBZ2h
-	QMEwPyikGa/spPl1lWeuJRsp5bJ5yVqEQQBciiw==;
+	s=fm2:rsa-sha256:VoPA2jvp1VoLBAuuoxTUk2dkCQXAp+ZHR2nB6yljl6s6GGA
+	ula1nGYaubMjEfA+3BWLELPZ4x1ftga9N0jDKRsUbdtOP8VW0vNr/Ubt4E12fPSN
+	vBjVd7SQI9pFiytyOP7pqtRwujmvILWu+2AhfHBfR5bs26RIh48OomiZmeWOQ0m7
+	8B4gYjiN1cx28yxr0dYDOhmZ2Syh7rLcSophnOfjQKSuTjLxa2Gyx9Lv6lZs/wgx
+	AtN3jrlAB5gxj5fKPc2cqLno8C/56ibHL7Ya/xl/BsYPebnYZQ4cG2kWStbJbWOC
+	5yU2fTczJLTTWFC6Hd21VvhbLNpdzZq8o0sh5UA==;
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-09;
 	repo=github.com/dkim2wg/interop; date=2026-11-03; sw=lmtpprox;
 	action=mi-m=1; hc=14;
 	hn=autocrypt,cc,content-transfer-encoding,content-type,date,
 	feedback-id,from,in-reply-to,message-id,mime-version,references,
 	subject,to,user-agent;
-Message-Instance: m=1; h=sha256:05x0EMbeuOAT16pzY7UDxnAPcR4voON1dLBAlE9HutU=:4Jm/lGKeQugnZ02F2FLhJ8t1tsu+nSNw64RY5DHTJk8=;
-X-ME-Sender: <xms:-HgDawvLAktWInw3J6V7sgAYsgZVQTHqplnouP8kHVeex6UdUFX4Xw>
-    <xme:-HgDazf1UwMV6dClhKr93KDgJzLe0SW8Re926pqyHc2V4HIiM69aF-NCB2pd7LUxk
-    FTOXkzqgGqq3nYI57vAbSBpOXUaj3EZtO-9ge7K0VTV79Vj>
-X-ME-Received: <xmr:-HgDa5bIC84NskIhrE1XJKAxKWFzl4Cv2Ayn0QDpUrCOqE_4xekNovI70Y8lTqSV5aV1wLGZGy6Cqd2cataVV3Fkqq5ZoQBVC-wNdtNExe4Qrsvir6rrZfzMZg>
-X-ME-Proxy-Cause: dmFkZTEDWCwVc1R00z/hVdeAbZ9t/nSI3FglEwH2PI2+4QUd3UZGRUEVfpt6kUFFuKo9Zx
-    qAQuyDhTRcc6U0irWcg7za0jJN9sNkIlUw2pCG9K3qmt9C+Ca+f25J6bNoXGD6xhAXA58j
-    X1L2ZeY1oCq/K+oC/iGvRjfgzZFjo4FmW1U4vn7IjZSjluyUkZQp5W6LAFtXeI3Kp/IHC+
-    ZnC208+GoF/9haTcAAJi5N+7BtTYtC5BKdvvWeOaFL3rxTNG4OU/p/g32Iqr4ELJkYLW4X
-    hR9W+luuccURMSI+Rn9ZTVKZSKF9gQrPzAF/IeOcT1X3JXysXZFDk2TJrUhUums9mkoyXi
-    EHV21ZuDGtBWlm+5VUCcpUObCwiWwudLhniFng771z65BZAtXekmAQnt2Cl5NPwtQcY5Dx
-    CgCabY1puPo7AOQDH0GIS3quWI64oh9jv/mrOSOgEo18pgIfSflwJRQf3McbYqCbzCujsE
-    k2Pn3wVJCfbCwpwMmxu0sfjbjG+EFCUXfb9cyDdmXI5M6eVt0FQqIptzXGq2fR8P+9Y8do
-    N21ab8RiwEn1zKoZHolvUEnPZbQuUFq5nZNmx2wDmOHED8GB/ni3fwWrnD5JwjSzQ/xvAx
-    ztLw5dGSlzukZHR/aZf1BHjojIjxzVvUH4YnNpHt4ykgjFNudwUYAQGamGtg
-X-ME-Proxy: <xmx:-HgDa-V0XXeHhb8TsYqZxbpvH8lmUvMCwhI3NbgmNk4Y6_DchYMckA>
-    <xmx:-HgDazgBswz-0yB5L4hSeNfpW2GzReOnm8eile2nG1u3sbqTricZpg>
-    <xmx:-HgDa0XAh4h5cPzBw6tm2iTc6RcyNTyHAYhZyMDPOnnJKzQeLSpjiA>
-    <xmx:-HgDayOOuwnXZAetPRmIbV9VI-rpb4fdSJVRqkhCiPe-YybRSe5Cww>
-    <xmx:-HgDa8DIAeW6n1XMkfkhHRP7xEQg3X-MEo4Cs2sBg_jvzQdYFdzafo0R>
+Message-Instance: m=1; h=sha256:HN0TNUhNHfvQfbmlovvFKc8QDMVm8T2xc/uo0DLTnWI=:NsU8S25WYE8UtJMOtwZ8kYjXiSr0SQrEMevqcLIRN+I=;
+X-ME-Sender: <xms:T4IDa2XLxWFD_1spg5-d4KD5EBIuwEtwk8KQpqgezZR7TucnVBP54g>
+    <xme:T4IDax2QxpGipkCxQUxPTt3NEwdI3FZGydU08OYkWrQx0nkDbnTDMg6_GUaxzlGf0
+    6g4WVnoBpLNolXfskh1PLtNxTOL6vA4urFdObJlIU6hdKmk>
+X-ME-Received: <xmr:T4IDa9NeIJKFip508O05LD8faRHLrMvNmDEllOC291AfbCrVqG-FJ_PeJNIwUVejfjSZHmF942BuURT1qI6n2q9WxL6yjAvTfYXHsORfEpRzbqQqwLgQSWb1yw>
+X-ME-Proxy-Cause: dmFkZTF2FkGarwOb/nDN7Rnysdykp1lrHgw162faknfs/tNImeRS1gkhQZyov4XYlf7hh6
+    c0w6e1pKIosLehMvew8IDIOz9iRftFmwEj+qXLcWf8eTAxmoYs2SVWpz8dwwE5G0Ln/4g4
+    zl33SIR03GzRdXyl5LAq2UHl4cXkanTwnZwNcQ9JLiHVlVKkACqY5xHVnioqoGtpIldTm2
+    DBsnSvJlKm2QWxrXGHvb3w6PbRu5pwSQ8OkifTSLSaIJ5IgyVzeFJZ92MMq2lywVPtz1fJ
+    J2pSIsKEv0EUmNNG/HzUBNlvhcakynGTbkbsDRB+SXHpTmqScy7sdDQI+/eKwrsegUOkuB
+    mh/VtQHf/30vuifAFYZ56WRhoyZG9lG+3wuGCOZjIqkEu1pSPY5sESizWeA6KatDjnBFlt
+    Ffa7752mB1KSgxDwMi/NftI6rwPf2LbDPARKFx8/eBfIMSmKZwfTo2BpVsngpt8QngT16T
+    8pqeQDVPbtLxfn/L8pPFjo1zCif60Gsb67f8VnEP/sPzBW0TtOAALliGfXTohja5Q1MmLF
+    QmfkvwdMptjoerBR/S3xjsIKjNVaVvsP7KajkWGl3qXggNVlFmqW0vf1QT4KWG3/P/cEG2
+    OCR/UXIIk6y5+mvbxPSAAtnmbETRjq6nMxFY2HeU7iW2cwTVapdtkYuSTw/w
+X-ME-Proxy: <xmx:T4IDa03JTy7IBZf1kMGkujmlGI3FHLF_aNVGMOTKbkYwlWDkhiypdg>
+    <xmx:T4IDa00sHPPQ4tHxwuzUM79FLIJVsQ1GUfwxQkRWocxb8nvuLxKCKQ>
+    <xmx:T4IDa69Zy0sYW71SFqZyYU4mcjNSk67Y8fArtRS7NkD0AH5f-ImZYA>
+    <xmx:T4IDa4ZQkHD3cIhxf4LsW73cW0z9ikCHBxN5OESD4QelyGrII2s9GA>
+    <xmx:UIIDa-37mw4VmeqRzglfHBdLqZ2BeSRGXRDgVb9QViddTjnz74sKHdfC>
 Feedback-ID: i31e841b0:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 22 Nov 2026 18:21:26 -0500 (EST)
-Message-ID: <372c81de458411c2b22610783f0cba9b1e6b3da0.camel@themaw.net>
-Subject: Re: Regression in 5.2.0, SIGSEGV in master.c line 619
+ 22 Nov 2026 19:01:13 -0500 (EST)
+Message-ID: <1f7bba7d478286814d5c5f00c3c14711698e95e4.camel@themaw.net>
+Subject: Re: [PATCH v4 0/2] kernfs, sysfs: refuse splice on /sys/power/resume
 From: Ian Kent <raven@themaw.net>
-To: "Kris Karas (Bug Reporting)" <bugs-a21@moonlit-rail.com>
-Cc: autofs@vger.kernel.org
-Date: Mon, 23 Nov 2026 07:21:23 +0800
-In-Reply-To: <6d9fb16a-b705-4fc0-92ad-2d68eb7ffebc@moonlit-rail.com>
-References: <4c791661-cdaf-45fc-8c1d-1a2d8a9b48ae@moonlit-rail.com>
-	 <d078dbfaebb342300ee8d89526afdb81b28c1197.camel@themaw.net>
-	 <6d9fb16a-b705-4fc0-92ad-2d68eb7ffebc@moonlit-rail.com>
+To: Krystian Kaniewski <krystianmkaniewski@gmail.com>, Greg Kroah-Hartman	
+ <gregkh@linuxfoundation.org>, Tejun Heo <tj@kernel.org>, "Rafael J.
+ Wysocki"	 <rafael@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>, Len
+ Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, Jens Axboe
+ <axboe@kernel.dk>,  Alexander Viro <viro@zeniv.linux.org.uk>, Christian
+ Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
+ autofs@vger.kernel.org, 	linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org, 
+	syzbot+002fb7b2d0bc53bf7e75@syzkaller.appspotmail.com
+Date: Mon, 23 Nov 2026 08:01:11 +0800
+In-Reply-To: <20261116133903.400202-1-krystianmkaniewski@gmail.com>
+References: <20261116133903.400202-1-krystianmkaniewski@gmail.com>
 Autocrypt: addr=raven@themaw.net; prefer-encrypt=mutual;
  keydata=mQINBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH
  44oE7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TIgp
@@ -164,7 +171,7 @@ Autocrypt: addr=raven@themaw.net; prefer-encrypt=mutual;
  VyYS5rZXJuZWwub3JnPoheBBMRAgAeBQJDUcoVAhsjBgsJCAcDAgMVAgMDFgIBAh4BAheAAAoJEHl
  mZuzUvumJNNkAni8tvmTwGuLB2QMBY9Hs/hxaeXGsAJ0Ts2f5bmhQ2aEdofUYeuqefzlNLw==
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.62.1 (3.62.1-1.fc45app1) 
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -176,19 +183,106 @@ List-Owner: <mailto:autofs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-T24gU2F0LCAyMDI2LTExLTIxIGF0IDIzOjM2IC0wNTAwLCBLcmlzIEthcmFzIChCdWcgUmVwb3J0
-aW5nKSB3cm90ZToKPiBJYW4gS2VudCB3cm90ZToKPiA+IFNvcnJ5IHRvIGJlIHNsb3cgdG8gZ2V0
-IGJhY2sgdG8geW91Lgo+IAo+IE5vIHByb2JsZW0uwqAgVGhhbmtzIGZvciB0aGUgcGF0Y2ghCj4g
-Cj4gPiBJZiB5b3UgY2FuLCBwbGVhc2UgdGVzdCB0aGUgYXR0YWNoZWQgcGF0Y2ggc28gSSBjYW4g
-bW92ZSBhbG9uZyB0aGUKPiA+IHBvc3RpbmcgaXQgdXBzdHJlYW0gYW5kIGNvbW1pdHRpbmcgaXQg
-dG8gdGhlIGF1dG9mcyByZXBvLiBldGMuCj4gCj4gVGVzdGVkIGp1c3Qgbm93LCBhbmQgaXQgd29y
-a2luZyBmaW5lIGhlcmUuCj4gCj4gS3Jpcwo+IAo+IMKgwqDCoMKgIH4vYXV0b2ZzIyBhdXRvbW91
-bnQgLS12ZXJzaW9uCj4gCj4gwqDCoMKgwqAgTGludXggYXV0b21vdW50IHZlcnNpb24gNS4yLjAK
-PiAKPiDCoMKgwqDCoCBEaXJlY3RvcmllczoKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgY29u
-ZmlnIGRpcjrCoMKgwqDCoCAvZXRjL2RlZmF1bHQKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
-bWFwcyBkaXI6wqDCoMKgwqDCoMKgIC9ldGMKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgbW9k
-dWxlcyBkaXI6wqDCoMKgIC91c3IvbGliNjQvYXV0b2ZzCj4gCj4gwqDCoMKgwqAgQ29tcGlsZSBv
-cHRpb25zOgo+IMKgwqDCoMKgwqDCoCBXSVRIX0xEQVAgTElCWE1MMl9XT1JLQVJPVU5EIFdJVEhf
-TElCVElSUEMKClRoYW5rIHlvdSBmb3IgY2hlY2tpbmcgaXQgYW5kIGdldHRpbmcgYmFjaywgOykK
-Cklhbgo=
+On Mon, 2026-11-16 at 14:39 +0100, Krystian Kaniewski wrote:
+> This series refuses splice on /sys/power/resume and gives writable
+> opens of that file separate lockdep classes, as Tejun suggested in
+> the
+> v1 discussion.
+>=20
+> The reported cycle is assembled from two operations. Splice into an
+> ordinary writable kernfs file records pipe->mutex before of->mutex. A
+> normal write to /sys/power/resume records of->mutex before the autofs
+> pipe locks when resume_store() resolves a relative path.
+>=20
+> Patch 1 adds SYSFS_NO_SPLICE and kernfs_ops->no_splice. Every open of
+> a
+> marked file refuses splice. Only writable opens use separate of-
+> >mutex
+> and seq_file lock classes, because only they can reach the store
+> callback which creates the reverse dependency.
+>=20
+> Patch 2 marks /sys/power/resume. Normal reads and writes stay
+> unchanged,
+> including a write which resolves a relative path through autofs.
+> Rafael
+> acked it to go together with patch 1.
+>=20
+> Other stores also look up paths. They remain outside this minimal
+> series
+> and can be marked in follow-up patches.
+>=20
+> Tested on v7.4-rc1 with fresh builds of the exact base and the
+> patched
+> tree. The original C and syz reproducers report the lockdep cycle on
+> the
+> base and run without a lockdep report with the series. Splice and
+> sendfile from an O_RDONLY open of /sys/power/resume return EINVAL
+> with
+> the series, while read() still works. All 33 QEMU cases booted and
+> completed in both phases. The builds, W=3D1 checks and Coccinelle
+> checks
+> introduced no warning or report.
 
+Just to complete the cycle (although a bit late) I appreciate the
+effort to come up with a way to resolve this without adversely
+affecting autofs.
+
+And while my knowledge of some of the areas these patches touch
+is not so good they look sound, as does the description, and it
+tries hard to clarify the case at hand.
+
+So to the that extent:
+Acked-by: Ian Kent <raven@themaw.net>
+
+Thanks
+Ian
+
+>=20
+> v4:
+> - Refuse splice for all opens of marked files (Tejun).
+> - Keep separate lockdep classes limited to writable opens.
+> - Add no-splice operations for read-only regular sysfs attributes.
+> - Keep Rafael's Acked-by on patch 2, whose code is unchanged.
+>=20
+> v3:
+> - Rename SYSFS_LOOKUP and ->may_lookup to SYSFS_NO_SPLICE and
+> =C2=A0 ->no_splice (Tejun).
+> - Drop the mmap, prealloc and binary attribute checks (Tejun).
+> - Add Rafael's Acked-by to patch 2.
+>=20
+> v2:
+> - Replace the v1 locking changes with per-attribute splice control.
+> - Preserve splice on read-only opens.
+> - Split both the open-file mutex and seq_file lock classes.
+> - Reject incompatible mmap and preallocated-buffer combinations.
+> - Reject SYSFS_LOOKUP on binary attributes.
+> - Rebase onto v7.4-rc1.
+>=20
+> v3:
+> https://lore.kernel.org/r/cover.1794479968.git.krystianmkaniewski@gmail.c=
+om
+> v2:
+> https://lore.kernel.org/r/cover.1793715774.git.krystianmkaniewski@gmail.c=
+om
+> v1:
+> https://lore.kernel.org/r/cover.1792577179.git.krystianmkaniewski@gmail.c=
+om
+>=20
+> Krystian Kaniewski (2):
+> =C2=A0 kernfs, sysfs: add SYSFS_NO_SPLICE to refuse splice
+> =C2=A0 PM: hibernate: refuse splice on /sys/power/resume
+>=20
+> =C2=A0fs/kernfs/file.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | =
+51 ++++++++++++++++++++++++++++++++++++--
+> --
+> =C2=A0fs/sysfs/file.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0 | 23 ++++++++++++++++++
+> =C2=A0fs/sysfs/group.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=
+=C2=A0 4 ++--
+> =C2=A0include/linux/kernfs.h=C2=A0=C2=A0 |=C2=A0 9 +++++++
+> =C2=A0include/linux/sysfs.h=C2=A0=C2=A0=C2=A0 | 22 ++++++++++++-----
+> =C2=A0kernel/power/hibernate.c |=C2=A0 3 ++-
+> =C2=A06 files changed, 99 insertions(+), 13 deletions(-)
+>=20
+>=20
+> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
